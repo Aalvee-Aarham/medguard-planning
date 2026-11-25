@@ -11,6 +11,8 @@ An AI ward assistant for Bangladeshi hospitals: one health profile per patient, 
 | Ward Dashboard (ward manager) | [medguard-ward-dashboard/PLAN.md](medguard-ward-dashboard/PLAN.md) | Anamika, Arna |
 | Admin Console (hospital admin, MedGuard team) | [medguard-admin-console/PLAN.md](medguard-admin-console/PLAN.md) | Aalvee |
 
+**Miro board (full plan, all screens):** https://miro.com/app/board/uXjVEJmlPzs=/
+
 Other docs: [plan.md](plan.md) (full UI/UX plan) · [UI theme prompt (1).md](<UI theme prompt (1).md>) (design system) · [MedGuardAI_Proposal.pdf](MedGuardAI_Proposal.pdf)
 
 ## Stack
