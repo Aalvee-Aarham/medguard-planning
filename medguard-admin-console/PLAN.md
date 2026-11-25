@@ -212,11 +212,11 @@ Loading skeleton · Empty ("No staff yet. Invite your first") · Error + Retry �
 
 ## 12. Done when
 
-- [x] All 25 screens reachable; each user sees only their area
-- [x] Two-step login on both areas
-- [x] Deactivate / out-of-service / escalate need confirm + reason
-- [x] Every write creates an audit entry visible in A11 / M12
-- [x] M11 never shows health data
-- [x] M6 can draw, link, and test zones
-- [x] Tables: search, filter, sort, pagination
-- [x] Bangla + English complete
+- [ ] All 25 screens reachable; each user sees only their area
+- [ ] Two-step login on both areas
+- [ ] Deactivate / out-of-service / escalate need confirm + reason
+- [ ] Every write creates an audit entry visible in A11 / M12
+- [ ] M11 never shows health data
+- [ ] M6 can draw, link, and test zones
+- [ ] Tables: search, filter, sort, pagination
+- [ ] Bangla + English complete
