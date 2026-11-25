@@ -60,7 +60,12 @@ function initial(): AppState {
 function load(): AppState {
   try {
     const raw = localStorage.getItem(KEY)
-    if (raw) return { ...initial(), ...JSON.parse(raw) }
+    if (raw) {
+      const saved = { ...initial(), ...JSON.parse(raw) } as AppState
+      // migration: seed test series added after a user's data was saved (e.g. blood pressure trend)
+      for (const t of makeSeed().tests) if (!saved.tests.some((x) => x.id === t.id)) saved.tests.push(t)
+      return saved
+    }
   } catch {
     /* corrupt storage: start fresh */
   }

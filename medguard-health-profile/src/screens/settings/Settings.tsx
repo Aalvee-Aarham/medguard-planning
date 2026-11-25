@@ -591,6 +591,7 @@ export function About() {
         <ListRow title={t('Privacy policy')} to="/about" />
         <ListRow title={t('Open-source licences')} sub="React, Three.js, GSAP, anime.js, Recharts, Lucide" />
         <ListRow title={t('Similar-case data')} sub="PMC-Patients (Scientific Data, 2023)" />
+        <ListRow title={t('3D anatomy model')} sub="Anatomy 3D models (lucgrn3/anatomy-models), from Z-Anatomy, BodyParts3D (DBCLS), NIH 3D and Sketchfab authors. CC BY-SA 4.0" />
       </List>
     </Screen>
   )

@@ -72,6 +72,8 @@ export function makeSeed() {
   const tests: TestResult[] = [
     { id: 't1', profileId: SELF, name: 'HbA1c', unit: '%', low: 4, high: 5.7, points: [{ date: ago(300), value: 7.8 }, { date: ago(200), value: 7.1 }, { date: ago(100), value: 6.6 }, { date: ago(12), value: 6.2, documentId: 'd1' }], source: { kind: 'ai', by: 'you', at: ago(12) }, confirmed: true, confidence: 0.97 },
     { id: 't2', profileId: MOTHER, name: 'Fasting glucose', unit: 'mmol/L', low: 3.9, high: 5.6, points: [{ date: ago(90), value: 8.4 }, { date: ago(60), value: 9.1 }, { date: ago(40), value: 11.2 }, { date: ago(12), value: 7.4, documentId: 'd3' }], source: { kind: 'ai', by: 'you', at: ago(12) }, confirmed: true, confidence: 0.92 },
+    { id: 'tbp1', profileId: SELF, name: 'Blood pressure (systolic)', unit: 'mmHg', low: 90, high: 139, points: [{ date: ago(180), value: 134 }, { date: ago(120), value: 130 }, { date: ago(60), value: 127 }, { date: ago(5), value: 124 }], source: { kind: 'self', by: 'you', at: ago(5) }, confirmed: true },
+    { id: 'tbp2', profileId: MOTHER, name: 'Blood pressure (systolic)', unit: 'mmHg', low: 90, high: 139, points: [{ date: ago(60), value: 146 }, { date: ago(41), value: 168 }, { date: ago(33), value: 138 }, { date: ago(12), value: 144 }, { date: ago(1), value: 152 }], source: { kind: 'hospital', by: 'Shanti Hospital', at: ago(1) }, confirmed: true },
     { id: 't3', profileId: MOTHER, name: 'Haemoglobin', unit: 'g/dL', low: 12, high: 15.5, points: [{ date: ago(120), value: 12.4 }, { date: ago(40), value: 11.3 }, { date: ago(12), value: 11.8, documentId: 'd3' }], source: { kind: 'ai', by: 'you', at: ago(12) }, confirmed: true, confidence: 0.88 },
   ]
 

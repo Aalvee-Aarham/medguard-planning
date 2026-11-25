@@ -85,11 +85,13 @@ export interface Condition extends RecordItem {
   section: 'conditions'
 }
 
+export type MedForm = 'tablet' | 'capsule' | 'syrup' | 'injection' | 'drops' | 'inhaler'
 export interface Medicine extends AiMeta {
   id: string
   profileId: string
   name: string
   dose: string
+  form?: MedForm
   times: string[] // "08:00"
   food: 'before' | 'after' | 'any'
   prescribedBy: string

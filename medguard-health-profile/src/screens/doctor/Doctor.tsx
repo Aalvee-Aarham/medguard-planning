@@ -10,7 +10,7 @@ import { CheckDraw } from '../../components/CheckDraw'
 import { DocThumb } from '../../components/art'
 import { fakeDelay, useFakeLoad } from '../../mock/api'
 import { countdown, fmtDateTime } from '../../lib/format'
-import { RecordOverview } from '../record/Record'
+import { RecordOverview } from '../record/RecordOverview'
 import { MOTHER } from '../../mock/seed'
 
 /** J1 BMDC verification. Mock: numbers starting "A-" pass. Fail -> stays a normal account, Retry. */
@@ -168,11 +168,11 @@ export function DoctorPatient() {
   const left = new Date(sp.until).getTime() - Date.now()
   return (
     <div>
-      <Screen className="pb-0">
-        <PageHeader title={sp.name} sub={<StatusChip status={left > 0 ? 'next' : 'expired'} label={left > 0 ? t('Access ends in {time}', { time: countdown(left) }) : t('Access ended')} />} />
+      <Screen wide className="pb-0">
+        <PageHeader title={sp.name} sub={<StatusChip status={left > 0 ? 'next' : 'expired'} label={left > 0 ? left > 86400000 ? t('Access ends in {n} days', { n: Math.ceil(left / 86400000) }) : t('Access ends in {time}', { time: countdown(left) }) : t('Access ended')} />} />
       </Screen>
       <RecordOverview profileId={sp.profileId} doctorView />
-      <Screen className="pt-0">
+      <Screen wide className="pt-0">
         <SectionTitle>{t('Similar cases')}</SectionTitle>
         <List>
           {s.cases.slice(0, 3).map((c) => (

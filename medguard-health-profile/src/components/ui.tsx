@@ -278,7 +278,7 @@ export function PageHeader({ title, back = true, action, sub }: { title: string;
 
 /** Page body. Phones: 16 px margins. Desktop: 32 px padding, a 768 px reading column unless `wide`. */
 export function Screen({ children, className, wide }: { children: ReactNode; className?: string; wide?: boolean }) {
-  return <div className={cx('mx-auto w-full px-4 pt-4 pb-8 md:px-6 lg:px-8 lg:pt-8', wide ? 'max-w-[1200px]' : 'max-w-3xl', className)}>{children}</div>
+  return <div className={cx('mx-auto w-full px-4 pt-4 pb-8 md:px-6 lg:px-8 lg:pt-8', wide ? 'max-w-[1400px]' : 'max-w-3xl', className)}>{children}</div>
 }
 
 export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {

@@ -153,6 +153,233 @@ html[lang='bn'] .text-display {
 .btn:not(:disabled):active {
   transform: translateY(0) scale(0.98);
 }
+.spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out);
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 0px), var(--color-primary-50), transparent 70%);
+}
+.spotlight > * {
+  position: relative;
+}
+@media (hover: hover) {
+  .spotlight:hover::before {
+    opacity: 1;
+  }
+}
+@layer components {
+/* ---- Home hero: aurora + glassmorphism (tokens only, mixed with color-mix) ---- */
+.hero-aurora {
+  background:
+    radial-gradient(120% 90% at 0% 0%, var(--color-primary-50), transparent 60%),
+    linear-gradient(180deg, var(--color-page), var(--color-surface));
+  isolation: isolate;
+}
+.hero-aurora .blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(64px);
+  opacity: 0.7;
+  will-change: transform;
+  animation: blob-drift 22s ease-in-out infinite alternate;
+}
+.hero-aurora .blob-a { background: color-mix(in oklab, var(--color-primary-600) 55%, transparent); }
+.hero-aurora .blob-b { background: color-mix(in oklab, var(--color-success-border) 60%, transparent); animation-duration: 28s; animation-delay: -6s; }
+.hero-aurora .blob-c { background: color-mix(in oklab, var(--color-primary-100) 90%, transparent); animation-duration: 18s; animation-delay: -12s; }
+@keyframes blob-drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(6%, 10%, 0) scale(1.12); }
+  100% { transform: translate3d(-8%, -4%, 0) scale(0.94); }
+}
+.hero-grid {
+  background-image: radial-gradient(color-mix(in oklab, var(--color-primary-600) 18%, transparent) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(70% 90% at 70% 40%, #000 20%, transparent 75%);
+}
+/* Pointer glow that follows the cursor across the hero */
+.hero-glow {
+  background: radial-gradient(420px circle at var(--hx, 70%) var(--hy, 40%), color-mix(in oklab, var(--color-white) 70%, transparent), transparent 65%);
+  transition: opacity 300ms var(--ease-out);
+}
+.glass {
+  background: linear-gradient(135deg, color-mix(in oklab, var(--color-white) 72%, transparent), color-mix(in oklab, var(--color-white) 38%, transparent));
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
+  backdrop-filter: blur(18px) saturate(1.6);
+  border: 1px solid color-mix(in oklab, var(--color-white) 80%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--color-white) 90%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, var(--color-primary-100) 60%, transparent),
+    0 10px 30px -12px color-mix(in oklab, var(--color-primary-700) 30%, transparent);
+}
+.glass-strong {
+  background: linear-gradient(150deg, color-mix(in oklab, var(--color-white) 86%, transparent), color-mix(in oklab, var(--color-white) 58%, transparent));
+}
+/* Light sheen line along the top edge of glass cards */
+.glass-sheen { position: relative; overflow: hidden; }
+.glass-sheen::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-white), transparent);
+  pointer-events: none;
+}
+.glass-pill {
+  transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out), background-color 200ms var(--ease-out);
+}
+@media (hover: hover) {
+  .glass-pill:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 0 var(--color-white),
+      0 14px 30px -12px color-mix(in oklab, var(--color-primary-600) 45%, transparent);
+  }
+  .glass-pill:hover .pill-icon { transform: rotate(-8deg) scale(1.08); }
+}
+.pill-icon {
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700));
+  box-shadow: 0 4px 10px -2px color-mix(in oklab, var(--color-primary-600) 55%, transparent), inset 0 1px 0 color-mix(in oklab, var(--color-white) 35%, transparent);
+  transition: transform 200ms var(--ease-out);
+}
+.text-gradient {
+  background: linear-gradient(100deg, var(--color-primary-700), var(--color-primary-600) 55%, var(--color-success-text));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.live-dot { position: relative; }
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  border: 2px solid currentColor;
+  opacity: 0;
+  animation: live-ping 2s var(--ease-out) infinite;
+}
+@keyframes live-ping {
+  0% { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass { background: var(--color-surface); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass { background: var(--color-surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+/* ---- Neumorphism: soft extruded / pressed surfaces on the page colour ---- */
+.neu {
+  background: linear-gradient(145deg, var(--color-white), var(--color-page));
+  box-shadow:
+    10px 10px 24px color-mix(in oklab, var(--color-primary-700) 13%, transparent),
+    -10px -10px 24px var(--color-white);
+  border: 1px solid color-mix(in oklab, var(--color-white) 70%, transparent);
+}
+.neu-inset {
+  background: var(--color-page);
+  box-shadow:
+    inset 5px 5px 12px color-mix(in oklab, var(--color-primary-700) 14%, transparent),
+    inset -5px -5px 12px var(--color-white);
+}
+.neu-press {
+  transition: box-shadow 200ms var(--ease-out), transform 200ms var(--ease-out);
+}
+@media (hover: hover) {
+  .neu-press:hover {
+    box-shadow:
+      4px 4px 10px color-mix(in oklab, var(--color-primary-700) 12%, transparent),
+      -4px -4px 10px var(--color-white);
+  }
+}
+.neu-press:active {
+  box-shadow:
+    inset 4px 4px 10px color-mix(in oklab, var(--color-primary-700) 14%, transparent),
+    inset -4px -4px 10px var(--color-white);
+}
+
+/* ---- Skeuomorphism: glossy, lit icon tiles ---- */
+.skeuo-icon {
+  position: relative;
+  color: var(--color-white);
+  background: linear-gradient(160deg, var(--color-primary-600) 0%, var(--color-primary-700) 100%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--color-white) 45%, transparent),
+    inset 0 -3px 6px color-mix(in oklab, var(--color-ink-900) 25%, transparent),
+    0 6px 14px -4px color-mix(in oklab, var(--color-primary-700) 60%, transparent);
+}
+.skeuo-icon::before {
+  content: '';
+  position: absolute;
+  inset: 2px 2px 50% 2px;
+  border-radius: inherit;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-white) 38%, transparent), transparent);
+  pointer-events: none;
+}
+.skeuo-icon > * { position: relative; }
+
+/* ---- 3D tilt (driven by --rx/--ry from useTilt) ---- */
+.tilt {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+  transform-style: preserve-3d;
+  transition: transform 400ms var(--ease-out), box-shadow 300ms var(--ease-out);
+  will-change: transform;
+}
+.tilt.is-tilting { transition: transform 80ms linear, box-shadow 300ms var(--ease-out); }
+.tilt .pop { transform: translateZ(28px); }
+.tilt .pop-sm { transform: translateZ(14px); }
+
+/* ---- Health passport card (skeuomorphic ID card with holographic sheen) ---- */
+.passport {
+  position: relative;
+  color: var(--color-white);
+  background:
+    radial-gradient(120% 140% at 100% 0%, color-mix(in oklab, var(--color-success-border) 45%, transparent), transparent 55%),
+    linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 55%, var(--color-ink-900) 120%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--color-white) 35%, transparent),
+    0 30px 60px -24px color-mix(in oklab, var(--color-primary-700) 75%, transparent),
+    0 10px 20px -10px color-mix(in oklab, var(--color-ink-900) 40%, transparent);
+  overflow: hidden;
+  isolation: isolate;
+}
+.passport-guilloche {
+  background-image:
+    repeating-radial-gradient(circle at 85% 120%, transparent 0 10px, color-mix(in oklab, var(--color-white) 7%, transparent) 10px 11px),
+    repeating-linear-gradient(115deg, transparent 0 14px, color-mix(in oklab, var(--color-white) 4%, transparent) 14px 15px);
+}
+.passport-holo {
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    color-mix(in oklab, var(--color-white) 30%, transparent) calc(var(--sx, 40%) - 6%),
+    color-mix(in oklab, var(--color-success-border) 35%, transparent) var(--sx, 40%),
+    color-mix(in oklab, var(--color-primary-100) 35%, transparent) calc(var(--sx, 40%) + 6%),
+    transparent 70%
+  );
+  mix-blend-mode: overlay;
+  transition: opacity 300ms var(--ease-out);
+}
+.passport-chip {
+  background: linear-gradient(135deg, var(--color-check-bg), var(--color-warning-border) 45%, var(--color-check-bg) 60%, var(--color-warning-border));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-check-text) 35%, transparent), 0 1px 2px color-mix(in oklab, var(--color-ink-900) 35%, transparent);
+}
+.emboss {
+  text-shadow: 0 1px 0 color-mix(in oklab, var(--color-ink-900) 45%, transparent), 0 -1px 0 color-mix(in oklab, var(--color-white) 25%, transparent);
+}
+.blood-drop {
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: radial-gradient(circle at 35% 30%, var(--color-danger-border), var(--color-danger-text) 70%);
+  box-shadow: inset 0 -3px 6px color-mix(in oklab, var(--color-ink-900) 30%, transparent), 0 6px 14px -4px color-mix(in oklab, var(--color-danger-text) 70%, transparent);
+}
+.glow-node {
+  box-shadow: 0 0 0 4px var(--color-surface), 0 0 0 5px var(--color-primary-100), 0 0 18px color-mix(in oklab, var(--color-primary-600) 45%, transparent);
+}
+}
+
 .card-link {
   transition: border-color 150ms var(--ease-out), transform 150ms var(--ease-out);
 }

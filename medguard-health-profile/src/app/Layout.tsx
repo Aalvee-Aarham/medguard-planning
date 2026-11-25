@@ -282,7 +282,7 @@ export function AppLayout() {
       <Sidebar />
       <div className="pb-24 lg:pb-8 lg:pl-[248px]">
         <TopBar />
-        <main id="main" ref={ref} className="mx-auto w-full max-w-[1200px]">
+        <main id="main" ref={ref} className="mx-auto w-full max-w-[1440px]">
           <Outlet />
         </main>
       </div>

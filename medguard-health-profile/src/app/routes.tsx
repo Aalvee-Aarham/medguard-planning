@@ -16,6 +16,8 @@ const L = <T,>(f: () => Promise<T>, k: keyof T) => lazy(() => f().then((m) => ({
 
 const up = () => import('../screens/upload/Upload')
 const rec = () => import('../screens/record/Record')
+const recOverview = () => import('../screens/record/RecordOverview')
+const recPages = () => import('../screens/record/RecordPages')
 const med = () => import('../screens/medicines/Medicines')
 const ai = () => import('../screens/ai/Ai')
 const sim = () => import('../screens/similar/Similar')
@@ -30,7 +32,7 @@ const S = {
   // C. Upload and AI extraction
   UploadSource: L(up, 'UploadSource'), CameraCapture: L(up, 'CameraCapture'), Processing: L(up, 'Processing'), Issues: L(up, 'Issues'), Review: L(up, 'Review'), Failed: L(up, 'Failed'),
   // D. My Record
-  RecordOverview: L(rec, 'RecordOverview'), SectionList: L(rec, 'SectionList'), TestDetail: L(rec, 'TestDetail'), DocumentViewer: L(rec, 'DocumentViewer'), EditItem: L(rec, 'EditItem'), Timeline: L(rec, 'Timeline'), AdmissionDetail: L(rec, 'AdmissionDetail'), ManualEntry: L(rec, 'ManualEntry'),
+  RecordOverview: L(recOverview, 'RecordOverview'), SectionList: L(recPages, 'SectionList'), TestDetail: L(recPages, 'TestDetail'), DocumentViewer: L(recPages, 'DocumentViewer'), EditItem: L(rec, 'EditItem'), Timeline: L(recPages, 'Timeline'), AdmissionDetail: L(rec, 'AdmissionDetail'), ManualEntry: L(recPages, 'ManualEntry'),
   // E. Medicines
   MedicineList: L(med, 'MedicineList'), MedicineDetail: L(med, 'MedicineDetail'), ReminderSetup: L(med, 'ReminderSetup'), ReminderAction: L(med, 'ReminderAction'), TakenLog: L(med, 'TakenLog'),
   // F. Ask AI

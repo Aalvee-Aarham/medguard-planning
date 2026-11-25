@@ -29,6 +29,12 @@ export default defineConfig({
         navigateFallback: '/index.html',
         runtimeCaching: [
           {
+            // anatomy model (~6 MB): not precached; cached on first view of Home, then works offline
+            urlPattern: /\/models\/.*\.glb$/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'anatomy-models', expiration: { maxEntries: 4 } },
+          },
+          {
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/,
             handler: 'CacheFirst',
             options: { cacheName: 'google-fonts', expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 } },
