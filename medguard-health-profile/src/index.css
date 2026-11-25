@@ -1,0 +1,227 @@
+@import 'tailwindcss';
+
+/* MedGuard theme: identical in all 4 apps. Use only these tokens. */
+@theme {
+  --color-*: initial;
+  --color-primary-700: #174c99;
+  --color-primary-600: #1d5fbf;
+  --color-primary-100: #d6e6fb;
+  --color-primary-50: #eaf2fd;
+  --color-page: #f5f8fc;
+  --color-surface: #ffffff;
+  --color-ink-900: #0f1b2d;
+  --color-ink-700: #475467;
+  --color-ink-500: #5b6b80;
+  --color-border-input: #7b8ba1;
+  --color-border-subtle: #e3e9f1;
+  --color-danger-text: #b42318;
+  --color-danger-bg: #fef3f2;
+  --color-danger-border: #fda29b;
+  --color-warning-text: #b54708;
+  --color-warning-bg: #fffaeb;
+  --color-warning-border: #fec84b;
+  --color-check-text: #93370d;
+  --color-check-bg: #fef0c7;
+  --color-success-text: #067647;
+  --color-success-bg: #ecfdf3;
+  --color-success-border: #75e0a7;
+  --color-neutral-text: #344054;
+  --color-neutral-bg: #f2f4f7;
+  --color-white: #ffffff;
+  --color-transparent: transparent;
+
+  --font-sans: 'Noto Sans', 'Noto Sans Bengali', system-ui, sans-serif;
+
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-sheet: 16px;
+
+  --shadow-bar: 0 1px 3px rgba(15, 27, 45, 0.08);
+  --shadow-float: 0 8px 24px rgba(15, 27, 45, 0.12);
+
+  /* Spacing: 4 8 12 16 24 32 48 64 only. Tailwind's 4px base gives p-1 p-2 p-3 p-4 p-6 p-8 p-12 p-16. */
+  --spacing: 4px;
+
+  --text-caption: calc(12px * var(--ts, 1));
+  --text-caption--line-height: calc(16px * var(--ts, 1));
+  --text-small: calc(14px * var(--ts, 1));
+  --text-small--line-height: calc(20px * var(--ts, 1));
+  --text-body: calc(16px * var(--ts, 1));
+  --text-body--line-height: calc(24px * var(--ts, 1));
+  --text-h3: calc(18px * var(--ts, 1));
+  --text-h3--line-height: calc(26px * var(--ts, 1));
+  --text-h2: calc(20px * var(--ts, 1));
+  --text-h2--line-height: calc(28px * var(--ts, 1));
+  --text-h1: calc(24px * var(--ts, 1));
+  --text-h1--line-height: calc(32px * var(--ts, 1));
+  --text-display: calc(28px * var(--ts, 1));
+  --text-display--line-height: calc(36px * var(--ts, 1));
+
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+/* Text size setting (S9): --ts scales every type token, not the layout.
+   Controls use min-height, so they grow with the text. 200% must not break layouts. */
+:root {
+  --ts: 1;
+  color-scheme: light;
+}
+
+html {
+  background: var(--color-page);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink-900);
+  font-size: calc(16px * var(--ts));
+  line-height: calc(24px * var(--ts));
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Bangla runs larger and taller (theme prompt, section 4) */
+html[lang='bn'] body {
+  font-size: calc(17px * var(--ts));
+  line-height: calc(28px * var(--ts));
+}
+html[lang='bn'] .text-body {
+  font-size: calc(17px * var(--ts));
+  line-height: calc(28px * var(--ts));
+}
+html[lang='bn'] .text-small {
+  font-size: calc(15px * var(--ts));
+  line-height: calc(24px * var(--ts));
+}
+html[lang='bn'] .text-caption {
+  font-size: calc(13px * var(--ts));
+  line-height: calc(20px * var(--ts));
+}
+html[lang='bn'] .text-h1 {
+  line-height: calc(36px * var(--ts));
+}
+html[lang='bn'] .text-h2 {
+  line-height: calc(32px * var(--ts));
+}
+html[lang='bn'] .text-h3 {
+  line-height: calc(30px * var(--ts));
+}
+html[lang='bn'] .text-display {
+  line-height: calc(40px * var(--ts));
+}
+
+/* Visible focus everywhere: 2 px blue ring */
+:focus-visible {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: 2px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* App column: phone first, centred on wider screens. In a layer so lg: utilities can override it. */
+@layer components {
+  .app-col {
+    width: 100%;
+    max-width: 480px;
+    margin-inline: auto;
+    min-height: 100dvh;
+    background: var(--color-page);
+  }
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Buttons step on hover and press on click (taste-skill rule 5), 150 ms ease-out */
+.btn {
+  transition:
+    background-color 150ms var(--ease-out),
+    border-color 150ms var(--ease-out),
+    transform 150ms var(--ease-out);
+}
+@media (hover: hover) {
+  .btn:not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+}
+.btn:not(:disabled):active {
+  transform: translateY(0) scale(0.98);
+}
+.card-link {
+  transition: border-color 150ms var(--ease-out), transform 150ms var(--ease-out);
+}
+@media (hover: hover) {
+  .card-link:hover {
+    border-color: var(--color-primary-100);
+    transform: translateY(-2px);
+  }
+}
+
+/* Skeleton shimmer is a quiet pulse, never flashing */
+@keyframes mg-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+.skeleton {
+  background: var(--color-border-subtle);
+  animation: mg-pulse 1.4s ease-in-out infinite;
+}
+
+/* Sheets and dialogs: 250 ms */
+@keyframes mg-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes mg-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+.sheet-in {
+  animation: mg-sheet-in 250ms var(--ease-out);
+}
+.fade-in {
+  animation: mg-fade-in 200ms var(--ease-out);
+}
+
+/* Camera edge frame */
+.edge-frame {
+  position: absolute;
+  inset: 12% 10%;
+  border: 3px dashed rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Users who pick reduce motion inside the app (S9 has no switch, but the OS one is respected) */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
