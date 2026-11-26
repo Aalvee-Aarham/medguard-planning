@@ -9,11 +9,16 @@ interface Props {
   body: string;
   actionLabel: string;
   destructive?: boolean;
+  /** Field label and help, e.g. "Answer to patient" when the patient will read it. */
+  reasonLabel?: string;
+  reasonHelp?: string;
+  /** Extra content above the reason field, e.g. a choice of patient. */
+  children?: React.ReactNode;
   onConfirm: (reason: string) => void;
   onCancel: () => void;
 }
 
-export function ReasonDialog({ open, title, body, actionLabel, destructive, onConfirm, onCancel }: Props) {
+export function ReasonDialog({ open, title, body, actionLabel, destructive, reasonLabel, reasonHelp, children, onConfirm, onCancel }: Props) {
   const t = useT();
   const [reason, setReason] = useState('');
   const [showError, setShowError] = useState(false);
@@ -64,9 +69,10 @@ export function ReasonDialog({ open, title, body, actionLabel, destructive, onCo
       >
         <h2 id={`${ids}-title`} className="text-xl font-semibold">{title}</h2>
         <p id={`${ids}-body`} className="mt-2 text-ink-700">{body}</p>
+        {children}
 
-        <label htmlFor={`${ids}-reason`} className="mt-6 block font-semibold">{t('dialog.reason')}</label>
-        <p id={`${ids}-help`} className="text-sm text-ink-500">{t('dialog.reasonHelp')}</p>
+        <label htmlFor={`${ids}-reason`} className="mt-6 block font-semibold">{reasonLabel ?? t('dialog.reason')}</label>
+        <p id={`${ids}-help`} className="text-sm text-ink-500">{reasonHelp ?? t('dialog.reasonHelp')}</p>
         <textarea
           id={`${ids}-reason`}
           ref={field}

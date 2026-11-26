@@ -5,7 +5,7 @@ import { useStore } from '../state/store';
 export function Toasts() {
   const { toasts } = useStore();
   return (
-    <div aria-live="polite" className="pointer-events-none fixed bottom-6 left-1/2 z-[60] flex -translate-x-1/2 flex-col items-center gap-2">
+    <div aria-live="polite" className="pointer-events-none fixed bottom-6 right-6 z-[60] flex flex-col items-end gap-2">
       {toasts.map((t) => (
         <div key={t.id} className="flex items-center gap-2 rounded-card bg-ink-900 px-4 py-3 text-surface shadow-float">
           <CircleCheck size={20} aria-hidden className="text-success-border" />

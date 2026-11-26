@@ -123,7 +123,9 @@ export function BedDetail() {
       ) : (
         <div className="grid grid-cols-12 gap-6">
           <div className="col-span-5 space-y-6">
-            <PatientCard patient={patient} />
+            {bed.reservedFor ? (
+              <Card title={t('bedDetail.patient')}><p className="p-4 font-semibold">{t('bedmap.reservedFor', { name: bed.reservedFor })}</p></Card>
+            ) : <PatientCard patient={patient} />}
             <Card title={t('bedDetail.camera')}>
               <div className="space-y-3 p-4">
                 <div className="flex items-center justify-between">

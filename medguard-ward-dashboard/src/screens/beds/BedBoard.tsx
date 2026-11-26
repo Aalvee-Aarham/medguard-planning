@@ -35,6 +35,7 @@ export function BedBoard() {
       key: 'patient', header: t('beds.col.patient'),
       render: (b) => {
         const p = patientOf(b);
+        if (b.reservedFor) return <span className="font-semibold">{t('bedmap.reservedFor', { name: b.reservedFor })}</span>;
         return p ? <span><span className="font-semibold">{p.name}</span> <span className="text-ink-500 tabular-nums">{p.id}</span></span> : <span className="text-ink-500">{t('bedmap.noPatient')}</span>;
       },
       sortValue: (b) => patientOf(b)?.name ?? '~',

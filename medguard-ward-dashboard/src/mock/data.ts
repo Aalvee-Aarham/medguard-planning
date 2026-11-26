@@ -102,9 +102,10 @@ export const QUEUE: QueueEntry[] = [
   { id: 'Q-1', name: 'Jahid Islam', priority: 'P1', source: 'emergency', bookedAt: minsAgo(6 * 60), bedType: 'General' },
   {
     id: 'Q-2', name: 'Rokeya Sultana', priority: 'P2', source: 'opd', bookedAt: minsAgo(14 * 60), bedType: 'General',
-    urgencyRequest: { reason: 'Headache is getting worse and I cannot keep food down.', status: 'open' },
+    urgencyRequest: { reason: 'Headache is getting worse and I cannot keep food down.', at: minsAgo(40), status: 'open' },
   },
-  { id: 'Q-3', name: 'Mizanur Rahman', priority: 'P3', source: 'referral', bookedAt: minsAgo(2 * 24 * 60), bedType: 'ICU' },
+  { id: 'Q-3', name: 'Mizanur Rahman', priority: 'P3', source: 'referral', bookedAt: minsAgo(2 * 24 * 60), bedType: 'General' },
+  { id: 'Q-4', name: 'Hamida Khanam', priority: 'P3', source: 'referral', bookedAt: minsAgo(20 * 60), bedType: 'ICU' },
 ];
 
 export const initialAlerts = (): Alert[] => [

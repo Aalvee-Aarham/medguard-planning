@@ -16,7 +16,6 @@ const ROLES: { role: Role; label: string }[] = [
 const LATER = [
   { label: 'Fall Bed 7, no acknowledgement', step: 8 },
   { label: 'Fall Bed 7, acknowledged', step: 8 },
-  { label: 'New urgency request', step: 5 },
 ];
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
@@ -31,6 +30,7 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 export function DevPanel() {
   const [open, setOpen] = useState(false);
   const { role, session, liveOn, serverDown, forceErrors, quickLock, audit, beds, dispatch } = useStore();
+  const mizanur = useStore().queue.find((q) => q.id === 'Q-3');
   const bed2Occupied = beds.find((b) => b.id === 2)?.status === 'occupied';
 
   // Close the panel on logout, so the login page starts clean.
@@ -110,7 +110,7 @@ export function DevPanel() {
       </div>
 
       <div className="mt-4 space-y-2 border-t border-border-subtle pt-4">
-        <p className="text-sm font-semibold text-ink-700">Ward events (from the Ward app)</p>
+        <p className="text-sm font-semibold text-ink-700">Ward events (from the other apps)</p>
         <button
           type="button"
           disabled={!bed2Occupied}
@@ -120,6 +120,14 @@ export function DevPanel() {
           Discharge Bed 2
         </button>
         {!bed2Occupied && <p className="text-xs text-ink-500">Bed 2 is empty. Use Reset to bring the patient back.</p>}
+        <button
+          type="button"
+          disabled={!mizanur || mizanur.urgencyRequest?.status === 'open'}
+          onClick={() => dispatch({ type: 'request-new', id: 'Q-3', reason: 'My father is in pain and cannot sleep. Please give us a bed sooner.', at: new Date().toISOString() })}
+          className="btn-secondary h-10 w-full text-sm"
+        >
+          New urgency request (Mizanur)
+        </button>
       </div>
 
       <div className="mt-4 space-y-1 border-t border-border-subtle pt-2">

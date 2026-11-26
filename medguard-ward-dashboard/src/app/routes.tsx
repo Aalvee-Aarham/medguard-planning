@@ -7,6 +7,10 @@ import { Login } from '../screens/login/Login';
 import { BedBoard } from '../screens/beds/BedBoard';
 import { BedDetail } from '../screens/beds/BedDetail';
 import { Overview } from '../screens/overview/Overview';
+import { AddToQueue } from '../screens/queue/AddToQueue';
+import { AssignBed } from '../screens/queue/AssignBed';
+import { Queue } from '../screens/queue/Queue';
+import { UrgencyRequests } from '../screens/queue/UrgencyRequests';
 import { Placeholder } from '../screens/Placeholder';
 import { useStore, useT } from '../state/store';
 import { canSee } from './access';
@@ -48,6 +52,10 @@ const BUILT: Record<string, () => React.ReactElement> = {
   D3: Overview,
   D6: BedBoard,
   D7: BedDetail,
+  D8: Queue,
+  D9: AddToQueue,
+  D10: UrgencyRequests,
+  D11: AssignBed,
 };
 
 export function AppRoutes() {

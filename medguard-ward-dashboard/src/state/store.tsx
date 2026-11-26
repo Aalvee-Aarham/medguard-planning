@@ -2,9 +2,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
 import bn from '../i18n/bn.json';
 import en from '../i18n/en.json';
-import { CLEANER, DOCTOR, PATIENTS, USERS, WARDS, initialAlerts, initialBedEvents, initialBeds } from '../mock/data';
+import { CLEANER, DOCTOR, PATIENTS, QUEUE, USERS, WARDS, initialAlerts, initialBedEvents, initialBeds } from '../mock/data';
+import { raise } from '../mock/queue';
 import { LIVE_INTERVAL_MS, nextLiveEvent } from '../mock/liveEvents';
-import type { Alert, AuditEntry, Bed, BedEvent, Role, User, Ward } from '../mock/types';
+import type { Alert, AuditEntry, Bed, BedEvent, QueueEntry, Role, User, Ward } from '../mock/types';
 
 export type Lang = 'en' | 'bn';
 
@@ -23,6 +24,7 @@ interface State {
   lang: Lang;
   beds: Bed[];
   bedEvents: BedEvent[];
+  queue: QueueEntry[];
   alerts: Alert[];
   audit: AuditEntry[];
   toasts: Toast[];
@@ -48,6 +50,11 @@ type Action =
   | { type: 'live-tick'; rand: number; at: string }
   | { type: 'mark-ready'; bedId: number; at: string; by: string }
   | { type: 'discharge'; bedId: number; at: string }
+  | { type: 'queue-add'; entry: QueueEntry }
+  | { type: 'queue-override'; id: string; points: number; reason: string; by: string }
+  | { type: 'request-answer'; id: string; raise: boolean; answer: string; by: string }
+  | { type: 'request-new'; id: string; reason: string; at: string }
+  | { type: 'assign'; bedId: number; entryId: string; at: string; by: string }
   | { type: 'audit'; entry: AuditEntry }
   | { type: 'toast'; toast: Toast }
   | { type: 'toast-done'; id: string }
@@ -86,6 +93,7 @@ function freshState(): State {
     ...loadPrefs(),
     beds,
     bedEvents: initialBedEvents(beds),
+    queue: structuredClone(QUEUE),
     alerts: initialAlerts(),
     audit: [],
     toasts: [],
@@ -166,6 +174,55 @@ function reducer(state: State, action: Action): State {
           } satisfies Alert,
           ...state.alerts,
         ].slice(0, MAX_ALERTS),
+      };
+    }
+    case 'queue-add':
+      return { ...state, queue: [...state.queue, action.entry] };
+    case 'queue-override':
+      return {
+        ...state,
+        queue: state.queue.map((q) => (q.id === action.id ? { ...q, override: { points: action.points, reason: action.reason, by: action.by } } : q)),
+      };
+    case 'request-answer':
+      return {
+        ...state,
+        queue: state.queue.map((q) =>
+          q.id === action.id && q.urgencyRequest
+            ? {
+                ...q,
+                priority: action.raise ? raise(q.priority) : q.priority,
+                urgencyRequest: { ...q.urgencyRequest, status: action.raise ? 'raised' : 'declined', answer: action.answer, answeredBy: action.by },
+              }
+            : q,
+        ),
+        // The request is handled, so its alert is done too.
+        alerts: state.alerts.map((a) => (a.kind === 'request' && a.title.vars?.name === state.queue.find((q) => q.id === action.id)?.name ? { ...a, acknowledged: true, acknowledgedBy: action.by } : a)),
+      };
+    case 'request-new': {
+      const entry = state.queue.find((q) => q.id === action.id);
+      if (!entry || entry.urgencyRequest?.status === 'open') return state;
+      return {
+        ...state,
+        queue: state.queue.map((q) => (q.id === action.id ? { ...q, urgencyRequest: { reason: action.reason, at: action.at, status: 'open' } } : q)),
+        alerts: [
+          {
+            id: `req-${action.at}`, tier: 'normal', kind: 'request', at: action.at, acknowledged: false,
+            title: { key: 'alert.request.title', vars: { name: entry.name } },
+            detail: { key: 'alert.requestNew.detail', vars: { priority: entry.priority } },
+          } satisfies Alert,
+          ...state.alerts,
+        ].slice(0, MAX_ALERTS),
+      };
+    }
+    case 'assign': {
+      const bed = state.beds.find((b) => b.id === action.bedId);
+      const entry = state.queue.find((q) => q.id === action.entryId);
+      if (bed?.status !== 'ready' || !entry) return state;
+      return {
+        ...state,
+        beds: state.beds.map((b) => (b.id === bed.id ? { ...b, status: 'reserved', since: action.at, reservedFor: entry.name } : b)),
+        bedEvents: [...state.bedEvents, bedEvent(bed.id, action.at, 'reserved', action.by, entry.name)],
+        queue: state.queue.filter((q) => q.id !== entry.id),
       };
     }
     case 'audit':

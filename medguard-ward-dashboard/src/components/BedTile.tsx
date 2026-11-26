@@ -32,7 +32,9 @@ export function BedTile({ bed, showName = true }: { bed: Bed; showName?: boolean
       </span>
       <span className="mt-2"><BedStatusChip status={bed.status} /></span>
       <span className="mt-2 min-h-6 truncate text-sm">
-        {patient ? (
+        {bed.reservedFor ? (
+          <span className="font-semibold">{t('bedmap.reservedFor', { name: bed.reservedFor })}</span>
+        ) : patient ? (
           showName ? <span className="font-semibold">{patient.name}</span> : <span className="tabular-nums">{patient.id}</span>
         ) : (
           <span className="text-ink-500">{t('bedmap.noPatient')}</span>
