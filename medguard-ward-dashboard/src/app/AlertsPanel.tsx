@@ -66,6 +66,18 @@ export function AlertsPanel() {
     return () => window.removeEventListener('keydown', onKey);
   }, [alertsOpen, dispatch]);
 
+  // Click anywhere outside the panel closes it. The Alerts button is skipped: it toggles the panel itself.
+  useEffect(() => {
+    if (!alertsOpen) return;
+    const onDown = (e: MouseEvent) => {
+      const target = e.target as Element;
+      if (target.closest('#alerts-panel, [aria-controls="alerts-panel"]')) return;
+      dispatch({ type: 'alerts-open', open: false });
+    };
+    window.addEventListener('mousedown', onDown);
+    return () => window.removeEventListener('mousedown', onDown);
+  }, [alertsOpen, dispatch]);
+
   const open = alerts.filter((a) => !a.acknowledged);
   const done = alerts.filter((a) => a.acknowledged);
   const tiers: AlertTier[] = ['critical', 'high', 'normal'];
