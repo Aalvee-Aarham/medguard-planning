@@ -150,7 +150,7 @@ function LiveAlerts() {
 }
 
 function StaffOnDuty() {
-  const { beds, alerts } = useStore();
+  const { beds, alerts, staff } = useStore();
   const t = useT();
   const occupied = new Set(beds.filter((b) => b.status === 'occupied').map((b) => b.id));
   // Overdue doses come from the live alerts, so they change as events arrive.
@@ -160,7 +160,7 @@ function StaffOnDuty() {
   return (
     <Card title={t('staff.title')} className="col-span-7 2xl:col-span-12" action={<CardLink to="/staff">{t('staff.open')}</CardLink>}>
       <ul className="grid grid-cols-2 gap-3 p-4 2xl:grid-cols-4">
-        {STAFF.map((s) => {
+        {staff.map((s) => {
           const patients = s.beds.filter((b) => occupied.has(b)).length;
           const overdue = overdueBeds.filter((b) => b !== undefined && s.beds.includes(b)).length;
           const overRatio = s.role === 'nurse' && patients > max;

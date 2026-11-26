@@ -2,10 +2,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
 import bn from '../i18n/bn.json';
 import en from '../i18n/en.json';
-import { CLEANER, DOCTOR, PATIENTS, QUEUE, USERS, WARDS, initialAlerts, initialBedEvents, initialBeds, initialCameraEvents, initialCameras } from '../mock/data';
+import { CLEANER, DOCTOR, PATIENTS, QUEUE, STAFF, USERS, WARDS, initialAlerts, initialBedEvents, initialBeds, initialCameraEvents, initialCameras } from '../mock/data';
 import { raise } from '../mock/queue';
+import { applySwap, initialSwaps, nextMonday } from '../mock/shifts';
 import { LIVE_INTERVAL_MS, nextLiveEvent } from '../mock/liveEvents';
-import type { Alert, AuditEntry, Bed, BedEvent, Camera, CameraEvent, QueueEntry, Role, User, Ward } from '../mock/types';
+import type { Alert, AuditEntry, Bed, BedEvent, Camera, CameraEvent, QueueEntry, Role, ShiftPlan, Staff, SwapRequest, User, Ward } from '../mock/types';
 
 export type Lang = 'en' | 'bn';
 
@@ -26,6 +27,10 @@ interface State {
   bedEvents: BedEvent[];
   queue: QueueEntry[];
   cameras: Camera[];
+  staff: Staff[];
+  /** Next week's plan; null until the manager asks the AI for one. */
+  shiftPlan: ShiftPlan | null;
+  swaps: SwapRequest[];
   cameraEvents: CameraEvent[];
   alerts: Alert[];
   audit: AuditEntry[];
@@ -54,6 +59,10 @@ type Action =
   | { type: 'discharge'; bedId: number; at: string }
   | { type: 'queue-add'; entry: QueueEntry }
   | { type: 'camera-online'; id: string; online: boolean; at: string }
+  | { type: 'assign-beds'; beds: Record<string, number[]> }
+  | { type: 'plan-set'; cells: ShiftPlan['cells']; aiProposed?: boolean }
+  | { type: 'plan-publish'; at: string; by: string; note: string }
+  | { type: 'swap-answer'; id: string; approve: boolean; answer: string; by: string }
   | { type: 'queue-override'; id: string; points: number; reason: string; by: string }
   | { type: 'request-answer'; id: string; raise: boolean; answer: string; by: string }
   | { type: 'request-new'; id: string; reason: string; at: string }
@@ -98,6 +107,9 @@ function freshState(): State {
     bedEvents: initialBedEvents(beds),
     queue: structuredClone(QUEUE),
     cameras: initialCameras(),
+    staff: structuredClone(STAFF),
+    shiftPlan: null,
+    swaps: initialSwaps(),
     cameraEvents: initialCameraEvents(beds),
     alerts: initialAlerts(),
     audit: [],
@@ -147,13 +159,43 @@ function reducer(state: State, action: Action): State {
     case 'add-alert':
       return { ...state, alerts: [action.alert, ...state.alerts].slice(0, MAX_ALERTS) };
     case 'live-tick': {
-      const ev = nextLiveEvent(state.beds, state.alerts, action.rand, action.at);
+      const ev = nextLiveEvent(state.beds, state.alerts, state.staff, action.rand, action.at);
       return {
         ...state,
         beds: ev.bed ? state.beds.map((b) => (b.id === ev.bed!.id ? { ...b, ...ev.bed } : b)) : state.beds,
         bedEvents: ev.bed ? [...state.bedEvents, bedEvent(ev.bed.id, action.at, 'cleaningDone', CLEANER)] : state.bedEvents,
         alerts: ev.alert ? [ev.alert, ...state.alerts].slice(0, MAX_ALERTS) : state.alerts,
         cameraEvents: ev.alert?.kind === 'visit' ? [visitEvent(state, ev.alert), ...state.cameraEvents].slice(0, 200) : state.cameraEvents,
+      };
+    }
+    case 'assign-beds':
+      return { ...state, staff: state.staff.map((s) => (action.beds[s.id] ? { ...s, beds: action.beds[s.id] } : s)) };
+    case 'plan-set': {
+      const prev = state.shiftPlan;
+      return {
+        ...state,
+        shiftPlan: {
+          weekStart: prev?.weekStart ?? nextMonday(),
+          cells: action.cells,
+          status: prev?.status ?? 'draft',
+          aiProposed: action.aiProposed ?? prev?.aiProposed ?? false,
+          publishedAt: prev?.publishedAt,
+          publishedBy: prev?.publishedBy,
+          note: prev?.note,
+          changedSincePublish: prev?.status === 'published' ? true : undefined,
+        },
+      };
+    }
+    case 'plan-publish':
+      if (!state.shiftPlan) return state;
+      return { ...state, shiftPlan: { ...state.shiftPlan, status: 'published', publishedAt: action.at, publishedBy: action.by, note: action.note, changedSincePublish: false } };
+    case 'swap-answer': {
+      const req = state.swaps.find((r) => r.id === action.id);
+      if (!req || req.status !== 'open') return state;
+      return {
+        ...state,
+        swaps: state.swaps.map((r) => (r.id === req.id ? { ...r, status: action.approve ? 'approved' : 'declined', answer: action.answer, by: action.by } : r)),
+        shiftPlan: action.approve && state.shiftPlan ? { ...state.shiftPlan, cells: applySwap(state.shiftPlan.cells, req) } : state.shiftPlan,
       };
     }
     case 'camera-online': {

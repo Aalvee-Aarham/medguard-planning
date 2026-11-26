@@ -83,7 +83,36 @@ export interface Staff {
   overdue: number;
 }
 
-export type AlertTier = 'critical' | 'high' | 'normal';
+/** M = Morning 8 AM–2 PM, E = Evening 2 PM–10 PM, N = Night 10 PM–8 AM. */
+export type ShiftCode = 'M' | 'E' | 'N' | 'off';
+
+export interface ShiftPlan {
+  weekStart: string;
+  /** Nurse ID → 7 days, Monday first. */
+  cells: Record<string, ShiftCode[]>;
+  status: 'draft' | 'published';
+  aiProposed: boolean;
+  publishedAt?: string;
+  publishedBy?: string;
+  note?: string;
+  /** Edited after it was published: needs publishing again. */
+  changedSincePublish?: boolean;
+}
+
+export interface SwapRequest {
+  id: string;
+  fromId: string;
+  toId: string;
+  /** Day of the plan week, 0 = Monday. */
+  day: number;
+  reason: string;
+  at: string;
+  status: 'open' | 'approved' | 'declined';
+  answer?: string;
+  by?: string;
+}
+
+export type AlertTier ='critical' | 'high' | 'normal';
 export type AlertKind = 'fall' | 'overdue' | 'visit' | 'bed' | 'request' | 'camera' | 'test';
 
 /** Text stored as a translation key + values, so it switches language. Drug and person names stay as written. */

@@ -9,6 +9,10 @@ import { BedDetail } from '../screens/beds/BedDetail';
 import { CameraWall } from '../screens/camera/CameraWall';
 import { SingleCamera } from '../screens/camera/SingleCamera';
 import { Overview } from '../screens/overview/Overview';
+import { ShiftPlanner } from '../screens/shifts/ShiftPlanner';
+import { SwapRequests } from '../screens/shifts/SwapRequests';
+import { AssignBeds } from '../screens/staff/AssignBeds';
+import { StaffOnDuty } from '../screens/staff/StaffOnDuty';
 import { AddToQueue } from '../screens/queue/AddToQueue';
 import { AssignBed } from '../screens/queue/AssignBed';
 import { Queue } from '../screens/queue/Queue';
@@ -60,6 +64,10 @@ const BUILT: Record<string, () => React.ReactElement> = {
   D9: AddToQueue,
   D10: UrgencyRequests,
   D11: AssignBed,
+  D12: StaffOnDuty,
+  D13: AssignBeds,
+  D14: ShiftPlanner,
+  D15: SwapRequests,
 };
 
 export function AppRoutes() {

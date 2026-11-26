@@ -1,7 +1,7 @@
 // Fake "live" ward: every few seconds something happens, so the dashboard moves.
 // Pure function: the store calls it with a random number and the current time.
-import { PATIENTS, STAFF } from './data';
-import type { Alert, Bed } from './types';
+import { PATIENTS } from './data';
+import type { Alert, Bed, Staff } from './types';
 
 export const LIVE_INTERVAL_MS = 12_000;
 
@@ -12,9 +12,9 @@ export interface LiveEvent {
   bed?: Pick<Bed, 'id' | 'status' | 'since'>;
 }
 
-const nurseFor = (bedId: number) => STAFF.find((s) => s.beds.includes(bedId))?.name ?? 'Nurse Mitu Das';
+const nurseFor = (staff: Staff[], bedId: number) => staff.find((s) => s.beds.includes(bedId))?.name ?? 'Nurse Mitu Das';
 
-export function nextLiveEvent(beds: Bed[], alerts: Alert[], rand: number, at: string): LiveEvent {
+export function nextLiveEvent(beds: Bed[], alerts: Alert[], staff: Staff[], rand: number, at: string): LiveEvent {
   const id = `live-${at}`;
   const pick = <T,>(list: T[]) => list[Math.floor(rand * 997) % list.length];
 
@@ -44,7 +44,7 @@ export function nextLiveEvent(beds: Bed[], alerts: Alert[], rand: number, at: st
       alert: {
         id, tier: 'high', kind: 'overdue', bedId: bed.id, at, acknowledged: false,
         title: { key: 'alert.overdue.title', vars: { bed: bed.id } },
-        detail: { key: 'alert.overdue.detail', vars: { drug: pick(DRUGS), mins: 5 + Math.floor(rand * 40), nurse: nurseFor(bed.id) } },
+        detail: { key: 'alert.overdue.detail', vars: { drug: pick(DRUGS), mins: 5 + Math.floor(rand * 40), nurse: nurseFor(staff, bed.id) } },
       },
     };
   }
@@ -56,7 +56,7 @@ export function nextLiveEvent(beds: Bed[], alerts: Alert[], rand: number, at: st
     alert: {
       id, tier: 'normal', kind: 'visit', bedId: bed.id, at, acknowledged: false,
       title: { key: 'alert.visit.title', vars: { bed: bed.id } },
-      detail: { key: 'alert.visit.detail', vars: { nurse: nurseFor(bed.id), patient: patient?.name ?? '', mins: 1 + Math.floor(rand * 5) } },
+      detail: { key: 'alert.visit.detail', vars: { nurse: nurseFor(staff, bed.id), patient: patient?.name ?? '', mins: 1 + Math.floor(rand * 5) } },
     },
   };
 }
