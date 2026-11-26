@@ -1,6 +1,6 @@
 // Dev panel: fake events and switches for testing on mock data. Not part of the real product.
 import { Wrench, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MOCK_OTP, MOCK_PIN } from '../mock/auth';
 import { LIVE_INTERVAL_MS } from '../mock/liveEvents';
@@ -32,6 +32,11 @@ export function DevPanel() {
   const [open, setOpen] = useState(false);
   const { role, session, liveOn, serverDown, forceErrors, quickLock, audit, beds, dispatch } = useStore();
   const bed2Occupied = beds.find((b) => b.id === 2)?.status === 'occupied';
+
+  // Close the panel on logout, so the login page starts clean.
+  useEffect(() => {
+    if (session === 'out') setOpen(false);
+  }, [session]);
   const navigate = useNavigate();
 
   const switchRole = (r: Role) => {
