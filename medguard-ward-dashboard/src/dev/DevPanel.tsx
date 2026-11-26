@@ -2,6 +2,7 @@
 import { Wrench, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { MOCK_OTP, MOCK_PIN } from '../mock/auth';
 import { LIVE_INTERVAL_MS } from '../mock/liveEvents';
 import type { AlertTier, Role } from '../mock/types';
 import { useStore } from '../state/store';
@@ -30,7 +31,7 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 
 export function DevPanel() {
   const [open, setOpen] = useState(false);
-  const { role, liveOn, serverDown, forceErrors, audit, dispatch } = useStore();
+  const { role, session, liveOn, serverDown, forceErrors, quickLock, audit, dispatch } = useStore();
   const navigate = useNavigate();
 
   const switchRole = (r: Role) => {
@@ -55,7 +56,7 @@ export function DevPanel() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 left-6 z-50 inline-flex h-10 items-center gap-2 rounded-full bg-ink-900 px-4 font-semibold text-surface shadow-float"
+        className="fixed bottom-6 left-6 z-[58] inline-flex h-10 items-center gap-2 rounded-full bg-ink-900 px-4 font-semibold text-surface shadow-float"
       >
         <Wrench size={16} aria-hidden /> Dev
       </button>
@@ -63,7 +64,7 @@ export function DevPanel() {
   }
 
   return (
-    <div role="dialog" aria-label="Dev panel" className="fixed bottom-6 left-6 z-50 max-h-[85vh] w-80 overflow-y-auto rounded-dialog border border-border-subtle bg-surface p-4 shadow-float">
+    <div role="dialog" aria-label="Dev panel" className="fixed bottom-6 left-6 z-[58] max-h-[85vh] w-80 overflow-y-auto rounded-dialog border border-border-subtle bg-surface p-4 shadow-float">
       <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-2 font-semibold"><Wrench size={16} aria-hidden /> Dev panel</h2>
         <button type="button" aria-label="Close Dev panel" onClick={() => setOpen(false)} className="btn-icon"><X size={20} aria-hidden /></button>
@@ -84,6 +85,18 @@ export function DevPanel() {
         <Toggle label={`Live events (every ${LIVE_INTERVAL_MS / 1000} s)`} checked={liveOn} onChange={(v) => dispatch({ type: 'set-flag', flag: 'liveOn', value: v })} />
         <Toggle label="Hospital server unreachable" checked={serverDown} onChange={(v) => dispatch({ type: 'set-flag', flag: 'serverDown', value: v })} />
         <Toggle label="Force errors" checked={forceErrors} onChange={(v) => dispatch({ type: 'set-flag', flag: 'forceErrors', value: v })} />
+      </div>
+
+      <div className="mt-2 space-y-2 border-t border-border-subtle pt-2">
+        <p className="text-sm font-semibold text-ink-700">
+          Session: {session === 'in' ? 'logged in' : session === 'locked' ? 'locked' : 'logged out'}
+        </p>
+        <Toggle label="Quick auto-lock (30 s, not 5 min)" checked={quickLock} onChange={(v) => dispatch({ type: 'set-flag', flag: 'quickLock', value: v })} />
+        <div className="grid grid-cols-2 gap-2">
+          <button type="button" disabled={session !== 'in'} onClick={() => dispatch({ type: 'lock', reason: 'idle' })} className="btn-secondary h-10 px-2 text-sm">Lock now</button>
+          <button type="button" disabled={session === 'out'} onClick={() => dispatch({ type: 'logout' })} className="btn-secondary h-10 px-2 text-sm">Log out</button>
+        </div>
+        <p className="text-xs text-ink-500 tabular-nums">Login: 01711000001 (Habib) or 01711000002 (Salma) · code {MOCK_OTP} · PIN {MOCK_PIN}</p>
       </div>
 
       <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border-subtle pt-4">

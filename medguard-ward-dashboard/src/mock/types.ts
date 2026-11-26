@@ -13,6 +13,9 @@ export interface Ward {
   name: string;
   hospital: string;
   beds: number;
+  /** Fixed numbers for wards without live mock data (only Neuro Ward B is live). */
+  mockFreeBeds?: number;
+  mockOpenAlerts?: number;
 }
 
 export type BedStatus = 'occupied' | 'ready' | 'cleaning' | 'reserved' | 'oos';

@@ -13,7 +13,11 @@ interface Toast {
   text: string;
 }
 
+export type Session = 'out' | 'in' | 'locked';
+
 interface State {
+  session: Session;
+  lockReason: 'idle' | 'manual';
   role: Role;
   wardId: string;
   lang: Lang;
@@ -26,9 +30,14 @@ interface State {
   liveOn: boolean;
   serverDown: boolean;
   forceErrors: boolean;
+  quickLock: boolean;
 }
 
 type Action =
+  | { type: 'login'; role: Role }
+  | { type: 'lock'; reason: 'idle' | 'manual' }
+  | { type: 'unlock' }
+  | { type: 'logout' }
   | { type: 'set-role'; role: Role }
   | { type: 'set-ward'; wardId: string }
   | { type: 'set-lang'; lang: Lang }
@@ -39,11 +48,24 @@ type Action =
   | { type: 'audit'; entry: AuditEntry }
   | { type: 'toast'; toast: Toast }
   | { type: 'toast-done'; id: string }
-  | { type: 'set-flag'; flag: 'liveOn' | 'serverDown' | 'forceErrors'; value: boolean }
+  | { type: 'set-flag'; flag: 'liveOn' | 'serverDown' | 'forceErrors' | 'quickLock'; value: boolean }
   | { type: 'reset' };
 
 const PREFS_KEY = 'mg-dashboard-prefs';
+// Session is kept per browser tab, so a page refresh does not log you out (closing the tab does).
+const SESSION_KEY = 'mg-dashboard-session';
 const MAX_ALERTS = 50;
+
+function loadSession(): Pick<State, 'session' | 'role' | 'lockReason'> {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(SESSION_KEY) ?? '{}');
+    const session: Session = ['in', 'locked'].includes(saved.session) ? saved.session : 'out';
+    const role: Role = ['manager', 'desk', 'manager-senior'].includes(saved.role) ? saved.role : 'manager';
+    return { session, role, lockReason: saved.lockReason === 'idle' ? 'idle' : 'manual' };
+  } catch {
+    return { session: 'out', role: 'manager', lockReason: 'manual' };
+  }
+}
 
 function loadPrefs(): Pick<State, 'lang' | 'wardId'> {
   try {
@@ -56,7 +78,7 @@ function loadPrefs(): Pick<State, 'lang' | 'wardId'> {
 
 function freshState(): State {
   return {
-    role: 'manager',
+    ...loadSession(),
     ...loadPrefs(),
     beds: initialBeds(),
     alerts: initialAlerts(),
@@ -66,11 +88,20 @@ function freshState(): State {
     liveOn: true,
     serverDown: false,
     forceErrors: false,
+    quickLock: false,
   };
 }
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
+    case 'login':
+      return { ...state, session: 'in', role: action.role };
+    case 'lock':
+      return state.session === 'in' ? { ...state, session: 'locked', lockReason: action.reason, alertsOpen: false } : state;
+    case 'unlock':
+      return { ...state, session: 'in' };
+    case 'logout':
+      return { ...state, session: 'out', alertsOpen: false };
     case 'set-role':
       return { ...state, role: action.role };
     case 'set-ward':
@@ -103,7 +134,8 @@ function reducer(state: State, action: Action): State {
     case 'set-flag':
       return { ...state, [action.flag]: action.value };
     case 'reset':
-      return { ...freshState(), lang: state.lang };
+      // Resets mock data and switches; keeps who is logged in and the language.
+      return { ...freshState(), session: state.session, role: state.role, lang: state.lang };
   }
 }
 
@@ -128,12 +160,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     document.documentElement.lang = state.lang;
   }, [state.lang, state.wardId]);
 
-  // Live mock events. Paused when the server is "down" or the Dev panel turns them off.
   useEffect(() => {
-    if (!state.liveOn || state.serverDown) return;
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ session: state.session, role: state.role, lockReason: state.lockReason }));
+  }, [state.session, state.role, state.lockReason]);
+
+  // Live mock events. Paused when logged out, when the server is "down" or when the Dev panel turns them off.
+  // They keep running while the screen is locked, like a real ward.
+  const loggedIn = state.session !== 'out';
+  useEffect(() => {
+    if (!loggedIn || !state.liveOn || state.serverDown) return;
     const timer = setInterval(() => dispatch({ type: 'live-tick', rand: Math.random(), at: new Date().toISOString() }), LIVE_INTERVAL_MS);
     return () => clearInterval(timer);
-  }, [state.liveOn, state.serverDown]);
+  }, [loggedIn, state.liveOn, state.serverDown]);
 
   const toast = useCallback((text: string) => {
     const id = `t-${Date.now()}-${Math.random()}`;

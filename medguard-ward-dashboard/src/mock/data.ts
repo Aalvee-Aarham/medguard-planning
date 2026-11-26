@@ -7,7 +7,7 @@ export const HOSPITAL = 'Shanti Hospital';
 
 export const WARDS: Ward[] = [
   { id: 'neuro-b', name: 'Neuro Ward B', hospital: HOSPITAL, beds: 10 },
-  { id: 'medicine-a', name: 'Medicine Ward A', hospital: HOSPITAL, beds: 16 },
+  { id: 'medicine-a', name: 'Medicine Ward A', hospital: HOSPITAL, beds: 16, mockFreeBeds: 3, mockOpenAlerts: 1 },
 ];
 
 export const USERS: Record<User['role'], User> = {
