@@ -196,15 +196,15 @@ export function Login() {
         </p>
       )}
 
-      {/* Demo values, so testers can sign in. Remove when a real backend exists. */}
-      <div className="mt-6 flex gap-2 rounded-control border border-primary-100 bg-primary-50 p-3 text-sm text-ink-700">
+      {/* Demo values, so testers can sign in. Only in npm run dev, never in the real build. */}
+      {import.meta.env.DEV && <div className="mt-6 flex gap-2 rounded-control border border-primary-100 bg-primary-50 p-3 text-sm text-ink-700">
         <Info size={16} aria-hidden className="mt-1 shrink-0 text-primary-600" />
         <div>
           <p className="font-semibold text-primary-700">{t('login.demo')}</p>
           <p className="tabular-nums">{t('login.demoPhones')}</p>
           <p className="tabular-nums">{t('login.demoCodes', { otp: MOCK_OTP, pin: MOCK_PIN })}</p>
         </div>
-      </div>
+      </div>}
     </AuthLayout>
   );
 }

@@ -18,7 +18,8 @@ function Root() {
       </div>
       {locked && <LockScreen />}
       <Toasts />
-      <DevPanel />
+      {/* Testing tool: only in npm run dev, removed from the real build. */}
+      {import.meta.env.DEV && <DevPanel />}
     </>
   );
 }
