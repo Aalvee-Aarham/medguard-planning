@@ -185,6 +185,8 @@
   "bedmap.noPatient": "রোগী নেই",
   "liveFeed.title": "লাইভ সতর্কতা",
   "liveFeed.viewAll": "সব দেখুন ({n})",
+  "liveFeed.all": "সব",
+  "liveFeed.filter": "স্তর অনুযায়ী সতর্কতা দেখুন",
   "staff.title": "ডিউটিতে কর্মী",
   "staff.open": "কর্মী পাতা খুলুন",
   "staff.beds": "বেড {list}",
@@ -193,6 +195,7 @@
   "staff.overdue": "{n}টি দেরি",
   "staff.noneOverdue": "দেরি নেই",
   "staff.overRatio": "অনুপাতের বেশি ({n} / {max})",
+  "staff.load": "{n} / {max} জন রোগী",
   "staffRole.nurse": "নার্স",
   "staffRole.senior": "সিনিয়র নার্স",
   "staffRole.doctor": "ডিউটি ডাক্তার",
@@ -242,8 +245,6 @@
   "queue.empty": "কেউ অপেক্ষায় নেই",
   "queue.col.patient": "রোগী",
   "queue.col.priority": "অগ্রাধিকার",
-  "queue.col.wait": "অপেক্ষা",
-  "queue.col.booked": "বুকিং",
   "queue.col.bed": "বেডের ধরন",
   "queue.col.score": "স্কোর",
   "queue.why": "কেন এখানে?",
@@ -327,6 +328,7 @@
   "assign.pickAction": "বেড দিন",
   "assign.toast": "{name} ও ভর্তি ডেস্ককে জানানো হয়েছে। বেড {bed} সংরক্ষিত।",
   "bedmap.reservedFor": "{name}-এর জন্য সংরক্ষিত",
+  "bedmap.open": "বেড বোর্ড খুলুন",
   "bedEvent.reserved": "{patient}-এর জন্য সংরক্ষিত",
   "alert.requestNew.detail": "{priority} রোগী তাড়াতাড়ি দেখার অনুরোধ করেছেন।",
   "camName.CAM-01": "বেড 1–5",
@@ -362,5 +364,6 @@
   "camera.filter.visit": "ভিজিট",
   "camera.reached": "{name} {s} সেকেন্ডে বেডে পৌঁছেছেন",
   "alert.camOffline.title": "{cam} অফলাইন",
-  "alert.camOffline.detail": "বেড {beds} ক্যামেরায় দেখা হচ্ছে না। নিজে গিয়ে দেখুন।"
+  "alert.camOffline.detail": "বেড {beds} ক্যামেরায় দেখা হচ্ছে না। নিজে গিয়ে দেখুন।",
+  "queue.col.waitBooked": "অপেক্ষা · বুকিং"
 }

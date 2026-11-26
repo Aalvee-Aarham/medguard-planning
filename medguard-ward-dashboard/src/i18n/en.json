@@ -185,6 +185,8 @@
   "bedmap.noPatient": "No patient",
   "liveFeed.title": "Live alerts",
   "liveFeed.viewAll": "View all ({n})",
+  "liveFeed.all": "All",
+  "liveFeed.filter": "Show alerts by level",
   "staff.title": "Staff on duty",
   "staff.open": "Open staff page",
   "staff.beds": "Beds {list}",
@@ -193,6 +195,7 @@
   "staff.overdue": "{n} overdue",
   "staff.noneOverdue": "None overdue",
   "staff.overRatio": "Over ratio ({n} / {max})",
+  "staff.load": "{n} of {max} patients",
   "staffRole.nurse": "Nurse",
   "staffRole.senior": "Senior nurse",
   "staffRole.doctor": "Duty doctor",
@@ -242,8 +245,6 @@
   "queue.empty": "No one waiting",
   "queue.col.patient": "Patient",
   "queue.col.priority": "Priority",
-  "queue.col.wait": "Waiting",
-  "queue.col.booked": "Booked",
   "queue.col.bed": "Bed type",
   "queue.col.score": "Score",
   "queue.why": "Why here?",
@@ -327,6 +328,7 @@
   "assign.pickAction": "Give bed",
   "assign.toast": "{name} and the admission desk notified. Bed {bed} is reserved.",
   "bedmap.reservedFor": "Reserved for {name}",
+  "bedmap.open": "Open bed board",
   "bedEvent.reserved": "Reserved for {patient}",
   "alert.requestNew.detail": "{priority} patient asked to be seen sooner.",
   "camName.CAM-01": "Beds 1–5",
@@ -362,5 +364,6 @@
   "camera.filter.visit": "Visits",
   "camera.reached": "{name} reached the bed in {s} s",
   "alert.camOffline.title": "{cam} offline",
-  "alert.camOffline.detail": "Beds {beds} are not being watched by camera. Check on them in person."
+  "alert.camOffline.detail": "Beds {beds} are not being watched by camera. Check on them in person.",
+  "queue.col.waitBooked": "Waiting · booked"
 }

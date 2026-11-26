@@ -96,14 +96,13 @@ export function Queue() {
             <caption className="sr-only">{t('screen.D8.title')}</caption>
             <thead className="sticky top-0 bg-surface shadow-bar">
               <tr className="h-12 text-left text-ink-700">
-                <th scope="col" className="px-4 font-semibold">#</th>
-                <th scope="col" className="px-4 font-semibold">{t('queue.col.patient')}</th>
-                <th scope="col" className="px-4 font-semibold">{t('queue.col.priority')}</th>
-                <th scope="col" className="px-4 text-right font-semibold">{t('queue.col.wait')}</th>
-                <th scope="col" className="px-4 font-semibold">{t('queue.col.booked')}</th>
-                <th scope="col" className="px-4 font-semibold">{t('queue.col.bed')}</th>
-                <th scope="col" className="px-4 text-right font-semibold">{t('queue.col.score')}</th>
-                <th scope="col" className="px-4 text-right font-semibold"><span className="sr-only">{t('beds.col.action')}</span></th>
+                <th scope="col" className="px-3 font-semibold">#</th>
+                <th scope="col" className="px-3 font-semibold">{t('queue.col.patient')}</th>
+                <th scope="col" className="px-3 font-semibold">{t('queue.col.priority')}</th>
+                <th scope="col" className="px-3 font-semibold">{t('queue.col.waitBooked')}</th>
+                <th scope="col" className="px-3 font-semibold">{t('queue.col.bed')}</th>
+                <th scope="col" className="px-3 text-right font-semibold">{t('queue.col.score')}</th>
+                <th scope="col" className="px-3 text-right font-semibold"><span className="sr-only">{t('beds.col.action')}</span></th>
               </tr>
             </thead>
             <tbody>
@@ -113,8 +112,8 @@ export function Queue() {
                 return (
                   <Fragment key={r.entry.id}>
                     <tr className="border-t border-border-subtle hover:bg-primary-50 [&>td]:py-2">
-                      <td className="px-4 text-lg font-semibold tabular-nums">{r.rank}</td>
-                      <td className="px-4">
+                      <td className="px-3 text-lg font-semibold tabular-nums">{r.rank}</td>
+                      <td className="px-3">
                         <span className="font-semibold">{r.entry.name}</span>
                         <span className="block text-ink-500">{t(`source.${r.entry.source}`)}</span>
                         {r.entry.urgencyRequest?.status === 'open' && (
@@ -123,11 +122,13 @@ export function Queue() {
                           </Link>
                         )}
                       </td>
-                      <td className="px-4"><PriorityBadge priority={r.entry.priority} /></td>
-                      <td className="px-4 text-right tabular-nums">{t('time.h', { n: r.score.hours })}</td>
-                      <td className="px-4 tabular-nums">{booked(r.entry.bookedAt)}</td>
-                      <td className="px-4">{t(`bedType.${r.entry.bedType}`)}</td>
-                      <td className="px-4 text-right">
+                      <td className="px-3"><PriorityBadge priority={r.entry.priority} /></td>
+                      <td className="px-3 tabular-nums">
+                        <span className="font-semibold">{t('time.h', { n: r.score.hours })}</span>
+                        <span className="block text-ink-500">{booked(r.entry.bookedAt)}</span>
+                      </td>
+                      <td className="px-3">{t(`bedType.${r.entry.bedType}`)}</td>
+                      <td className="px-3 text-right">
                         <button
                           type="button"
                           aria-expanded={expanded}
@@ -140,7 +141,7 @@ export function Queue() {
                           {expanded ? <ChevronUp size={16} aria-hidden /> : <ChevronDown size={16} aria-hidden />}
                         </button>
                       </td>
-                      <td className="px-4">
+                      <td className="px-3">
                         <div className="flex items-center justify-end gap-2">
                           {above && (
                             <button
@@ -160,7 +161,7 @@ export function Queue() {
                     {expanded && (
                       <tr id={`why-${r.entry.id}`} className="bg-primary-50">
                         <td />
-                        <td colSpan={7} className="px-4 py-3"><WhyHere r={r} /></td>
+                        <td colSpan={6} className="px-3 py-3"><WhyHere r={r} /></td>
                       </tr>
                     )}
                   </Fragment>
