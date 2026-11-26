@@ -2,6 +2,7 @@
 import { Wrench, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { LIVE_INTERVAL_MS } from '../mock/liveEvents';
 import type { AlertTier, Role } from '../mock/types';
 import { useStore } from '../state/store';
 
@@ -43,8 +44,8 @@ export function DevPanel() {
       type: 'add-alert',
       alert: {
         id: `dev-${at}`, tier, kind: 'test', at, acknowledged: false,
-        title: tier === 'high' ? 'Test high alert' : 'Test normal alert',
-        detail: 'Sent from the Dev panel.',
+        title: { key: `alert.test.${tier}` },
+        detail: { key: 'alert.test.detail' },
       },
     });
   };
@@ -80,7 +81,7 @@ export function DevPanel() {
       </fieldset>
 
       <div className="mt-4 border-t border-border-subtle pt-2">
-        <Toggle label="Live events (every 8 s)" checked={liveOn} onChange={(v) => dispatch({ type: 'set-flag', flag: 'liveOn', value: v })} />
+        <Toggle label={`Live events (every ${LIVE_INTERVAL_MS / 1000} s)`} checked={liveOn} onChange={(v) => dispatch({ type: 'set-flag', flag: 'liveOn', value: v })} />
         <Toggle label="Hospital server unreachable" checked={serverDown} onChange={(v) => dispatch({ type: 'set-flag', flag: 'serverDown', value: v })} />
         <Toggle label="Force errors" checked={forceErrors} onChange={(v) => dispatch({ type: 'set-flag', flag: 'forceErrors', value: v })} />
       </div>

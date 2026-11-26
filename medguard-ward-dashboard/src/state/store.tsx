@@ -87,7 +87,7 @@ function reducer(state: State, action: Action): State {
     case 'add-alert':
       return { ...state, alerts: [action.alert, ...state.alerts].slice(0, MAX_ALERTS) };
     case 'live-tick': {
-      const ev = nextLiveEvent(state.beds, action.rand, action.at);
+      const ev = nextLiveEvent(state.beds, state.alerts, action.rand, action.at);
       return {
         ...state,
         beds: ev.bed ? state.beds.map((b) => (b.id === ev.bed!.id ? { ...b, ...ev.bed } : b)) : state.beds,

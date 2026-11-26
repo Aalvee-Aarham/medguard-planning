@@ -59,8 +59,24 @@ export const QUEUE: QueueEntry[] = [
 ];
 
 export const initialAlerts = (): Alert[] => [
-  { id: 'a-1', tier: 'high', kind: 'overdue', title: 'Overdue dose: Bed 4', detail: 'Levetiracetam 500 mg oral, 25 min late · Nurse Rina Akter', bedId: 4, at: minsAgo(25), acknowledged: false },
-  { id: 'a-2', tier: 'high', kind: 'overdue', title: 'Overdue dose: Bed 8', detail: 'Haloperidol 0.5 mg oral, 10 min late · Nurse Rina Akter', bedId: 8, at: minsAgo(10), acknowledged: false },
-  { id: 'a-3', tier: 'normal', kind: 'request', title: 'Urgency request: Rokeya Sultana', detail: 'Waiting 14 h, P2 Urgent. Patient asked to be seen sooner.', at: minsAgo(40), acknowledged: false },
-  { id: 'a-4', tier: 'critical', kind: 'fall', title: 'Fall: Bed 7', detail: 'Rahima Begum · Nurse Rina Akter responded in 48 s', bedId: 7, at: minsAgo(95), acknowledged: true, acknowledgedBy: 'Nurse Rina Akter' },
+  {
+    id: 'a-1', tier: 'high', kind: 'overdue', bedId: 4, at: minsAgo(25), acknowledged: false,
+    title: { key: 'alert.overdue.title', vars: { bed: 4 } },
+    detail: { key: 'alert.overdue.detail', vars: { drug: 'Levetiracetam 500 mg oral', mins: 25, nurse: 'Nurse Rina Akter' } },
+  },
+  {
+    id: 'a-2', tier: 'high', kind: 'overdue', bedId: 8, at: minsAgo(10), acknowledged: false,
+    title: { key: 'alert.overdue.title', vars: { bed: 8 } },
+    detail: { key: 'alert.overdue.detail', vars: { drug: 'Haloperidol 0.5 mg oral', mins: 10, nurse: 'Nurse Rina Akter' } },
+  },
+  {
+    id: 'a-3', tier: 'normal', kind: 'request', at: minsAgo(40), acknowledged: false,
+    title: { key: 'alert.request.title', vars: { name: 'Rokeya Sultana' } },
+    detail: { key: 'alert.request.detail', vars: { hours: 14 } },
+  },
+  {
+    id: 'a-4', tier: 'critical', kind: 'fall', bedId: 7, at: minsAgo(95), acknowledged: true, acknowledgedBy: 'Nurse Rina Akter',
+    title: { key: 'alert.fall.title', vars: { bed: 7 } },
+    detail: { key: 'alert.fall.detail', vars: { patient: 'Rahima Begum', nurse: 'Nurse Rina Akter', secs: 48 } },
+  },
 ];

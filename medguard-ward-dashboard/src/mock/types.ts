@@ -49,12 +49,18 @@ export interface Staff {
 export type AlertTier = 'critical' | 'high' | 'normal';
 export type AlertKind = 'fall' | 'overdue' | 'visit' | 'bed' | 'request' | 'test';
 
+/** Text stored as a translation key + values, so it switches language. Drug and person names stay as written. */
+export interface Msg {
+  key: string;
+  vars?: Record<string, string | number>;
+}
+
 export interface Alert {
   id: string;
   tier: AlertTier;
   kind: AlertKind;
-  title: string;
-  detail: string;
+  title: Msg;
+  detail: Msg;
   bedId?: number;
   at: string;
   acknowledged: boolean;

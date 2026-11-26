@@ -24,7 +24,7 @@ export function TopBar() {
   const initials = user.name.split(' ').map((p) => p[0]).join('');
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-6 border-b border-border-subtle bg-surface px-8 shadow-bar">
+    <header className="flex h-16 items-center gap-4 whitespace-nowrap border-b border-border-subtle bg-surface px-8 shadow-bar 2xl:gap-6">
       <label className="flex items-center gap-2">
         <span className="sr-only">{t('top.ward')}</span>
         <select
@@ -36,7 +36,8 @@ export function TopBar() {
         </select>
       </label>
 
-      <span className="inline-flex items-center gap-2 text-ink-700">
+      {/* Hospital name hides on narrow screens; the ward name is enough there. */}
+      <span className="hidden items-center gap-2 text-ink-700 xl:inline-flex">
         <Building2 size={20} strokeWidth={1.75} aria-hidden />
         {ward.hospital}
       </span>
@@ -72,11 +73,12 @@ export function TopBar() {
           </span>
         </button>
 
-        <div className="flex items-center gap-3 border-l border-border-subtle pl-4">
-          <span aria-hidden className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 font-semibold text-primary-700">
+        <div className="flex items-center gap-3 border-l border-border-subtle pl-4" title={`${user.name} · ${t(`role.${role}`)}`}>
+          <span aria-hidden className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-100 font-semibold text-primary-700">
             {initials}
           </span>
-          <div className="leading-5">
+          {/* Name shows on wide screens; on narrow ones the initials stay and the name is in the tooltip. */}
+          <div className="sr-only leading-5 2xl:not-sr-only">
             <div className="font-semibold">{user.name}</div>
             <div className="text-sm text-ink-700">{t(`role.${role}`)}</div>
           </div>

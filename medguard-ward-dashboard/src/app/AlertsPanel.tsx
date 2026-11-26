@@ -19,16 +19,17 @@ function AlertCard({ alert }: { alert: Alert }) {
   const { dispatch, user, toast, serverDown } = useStore();
   const t = useT();
   const Icon = KIND_ICON[alert.kind];
+  const ago = since(alert.at);
 
   return (
     <li className={`rounded-card border p-3 ${alert.acknowledged ? 'border-border-subtle bg-surface' : TIER_STYLE[alert.tier]}`}>
       <div className="flex items-start gap-3">
         <Icon size={20} strokeWidth={1.75} aria-hidden className={`mt-1 shrink-0 ${alert.acknowledged ? 'text-ink-500' : ''}`} />
         <div className="min-w-0 flex-1">
-          <div className={`font-semibold ${alert.acknowledged ? 'text-ink-700' : ''}`}>{alert.title}</div>
-          <p className="mt-1 text-sm text-ink-700">{alert.detail}</p>
+          <div className={`font-semibold ${alert.acknowledged ? 'text-ink-700' : ''}`}>{t(alert.title.key, alert.title.vars)}</div>
+          <p className="mt-1 text-sm text-ink-700">{t(alert.detail.key, alert.detail.vars)}</p>
           <p className="mt-1 text-xs text-ink-500 tabular-nums">
-            {formatTime(alert.at)} · {since(alert.at)}
+            {formatTime(alert.at)} · {t(`time.${ago.unit}`, { n: ago.n })}
           </p>
           {alert.acknowledged ? (
             <p className="mt-2 inline-flex items-center gap-1 text-sm text-success-text">

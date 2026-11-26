@@ -28,8 +28,11 @@ export function Shell() {
     <div className="flex min-h-screen">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar />
-        <ServerBanner />
+        {/* Banner sticks under the top bar, so "server unreachable" never scrolls out of view. */}
+        <div className="sticky top-0 z-30">
+          <TopBar />
+          <ServerBanner />
+        </div>
         <main ref={main} className="mx-auto w-full max-w-[1440px] flex-1 p-8">
           <Outlet />
         </main>

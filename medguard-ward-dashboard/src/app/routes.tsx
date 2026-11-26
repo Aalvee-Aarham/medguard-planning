@@ -3,7 +3,7 @@ import { NoAccess } from '../components/States';
 import { ComponentGallery } from '../dev/ComponentGallery';
 import { ScreenIndex } from '../dev/ScreenIndex';
 import { Placeholder } from '../screens/Placeholder';
-import { useStore } from '../state/store';
+import { useStore, useT } from '../state/store';
 import { canSee } from './access';
 import { SCREENS, type Section } from './screens';
 import { Shell } from './Shell';
@@ -15,22 +15,24 @@ function RoleGate({ section, children }: { section: Section; children: React.Rea
 }
 
 function NotFound() {
+  const t = useT();
   return (
     <div className="space-y-2">
-      <h1 className="text-2xl font-semibold">Page not found</h1>
-      <Link to="/" className="font-semibold text-primary-600 hover:underline">Go to Overview</Link>
+      <h1 className="text-2xl font-semibold">{t('notFound.title')}</h1>
+      <Link to="/" className="font-semibold text-primary-600 hover:underline">{t('notFound.link')}</Link>
     </div>
   );
 }
 
 // D1 and D2 are full-page screens, outside the sidebar layout.
 function AccessPlaceholder({ id }: { id: string }) {
+  const t = useT();
   const screen = SCREENS.find((s) => s.id === id)!;
   return (
     <div className="flex min-h-screen items-center justify-center p-8">
       <div className="w-full max-w-lg rounded-card border border-border-subtle bg-surface p-8">
         <Placeholder screen={screen} />
-        <Link to="/" className="btn-primary mt-6">Continue to dashboard</Link>
+        <Link to="/" className="btn-primary mt-6">{t('nav.continue')}</Link>
       </div>
     </div>
   );

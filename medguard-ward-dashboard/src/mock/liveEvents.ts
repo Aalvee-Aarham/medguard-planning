@@ -3,7 +3,7 @@
 import { PATIENTS, STAFF } from './data';
 import type { Alert, Bed } from './types';
 
-export const LIVE_INTERVAL_MS = 8000;
+export const LIVE_INTERVAL_MS = 12_000;
 
 const DRUGS = ['Metformin 500 mg oral', 'Amlodipine 5 mg oral', 'Insulin 10 units SC', 'Levodopa 100 mg oral', 'Ceftriaxone 1 g IV'];
 
@@ -14,9 +14,8 @@ export interface LiveEvent {
 
 const nurseFor = (bedId: number) => STAFF.find((s) => s.beds.includes(bedId))?.name ?? 'Nurse Mitu Das';
 
-export function nextLiveEvent(beds: Bed[], rand: number, at: string): LiveEvent {
+export function nextLiveEvent(beds: Bed[], alerts: Alert[], rand: number, at: string): LiveEvent {
   const id = `live-${at}`;
-  const occupied = beds.filter((b) => b.status === 'occupied');
   const pick = <T,>(list: T[]) => list[Math.floor(rand * 997) % list.length];
 
   // A bed that was being cleaned becomes ready.
@@ -24,29 +23,40 @@ export function nextLiveEvent(beds: Bed[], rand: number, at: string): LiveEvent 
   if (cleaning && rand < 0.2) {
     return {
       bed: { id: cleaning.id, status: 'ready', since: at },
-      alert: { id, tier: 'normal', kind: 'bed', title: `Bed ${cleaning.id} ready`, detail: 'Cleaning finished. Bed can be assigned.', bedId: cleaning.id, at, acknowledged: false },
+      alert: {
+        id, tier: 'normal', kind: 'bed', bedId: cleaning.id, at, acknowledged: false,
+        title: { key: 'alert.bedReady.title', vars: { bed: cleaning.id } },
+        detail: { key: 'alert.bedReady.detail' },
+      },
     };
   }
 
+  const occupied = beds.filter((b) => b.status === 'occupied');
   if (occupied.length === 0) return {};
-  const bed = pick(occupied);
-  const patient = PATIENTS.find((p) => p.id === bed.patientId);
 
-  if (rand < 0.5) {
-    const late = 5 + Math.floor(rand * 40);
+  // Only one open overdue alert per bed, so the panel does not fill with repeats.
+  const alreadyOverdue = new Set(alerts.filter((a) => a.kind === 'overdue' && !a.acknowledged).map((a) => a.bedId));
+  const canBeOverdue = occupied.filter((b) => !alreadyOverdue.has(b.id));
+
+  if (rand < 0.5 && canBeOverdue.length > 0) {
+    const bed = pick(canBeOverdue);
     return {
       alert: {
-        id, tier: 'high', kind: 'overdue', title: `Overdue dose: Bed ${bed.id}`,
-        detail: `${pick(DRUGS)}, ${late} min late · ${nurseFor(bed.id)}`, bedId: bed.id, at, acknowledged: false,
+        id, tier: 'high', kind: 'overdue', bedId: bed.id, at, acknowledged: false,
+        title: { key: 'alert.overdue.title', vars: { bed: bed.id } },
+        detail: { key: 'alert.overdue.detail', vars: { drug: pick(DRUGS), mins: 5 + Math.floor(rand * 40), nurse: nurseFor(bed.id) } },
       },
     };
   }
 
   // Honest camera wording (safety rule 3): "Visit seen by camera", never "Dose verified".
+  const bed = pick(occupied);
+  const patient = PATIENTS.find((p) => p.id === bed.patientId);
   return {
     alert: {
-      id, tier: 'normal', kind: 'visit', title: `Visit seen by camera: Bed ${bed.id}`,
-      detail: `${nurseFor(bed.id)} at ${patient?.name ?? 'patient'}’s bed, ${1 + Math.floor(rand * 5)} min`, bedId: bed.id, at, acknowledged: false,
+      id, tier: 'normal', kind: 'visit', bedId: bed.id, at, acknowledged: false,
+      title: { key: 'alert.visit.title', vars: { bed: bed.id } },
+      detail: { key: 'alert.visit.detail', vars: { nurse: nurseFor(bed.id), patient: patient?.name ?? '', mins: 1 + Math.floor(rand * 5) } },
     },
   };
 }

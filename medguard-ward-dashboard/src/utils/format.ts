@@ -6,11 +6,11 @@ export const formatTime = (iso: string) =>
 export const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
-/** "4 min", "3 h", "2 d" since the given time. */
-export function since(iso: string, now = Date.now()) {
+/** Time since the given moment, as a number and a unit. Show it with t(`time.${unit}`, { n }). */
+export function since(iso: string, now = Date.now()): { n: number; unit: 'min' | 'h' | 'd' } {
   const mins = Math.max(0, Math.round((now - new Date(iso).getTime()) / 60_000));
-  if (mins < 60) return `${mins} min`;
+  if (mins < 60) return { n: mins, unit: 'min' };
   const hours = Math.floor(mins / 60);
-  if (hours < 48) return `${hours} h`;
-  return `${Math.floor(hours / 24)} d`;
+  if (hours < 48) return { n: hours, unit: 'h' };
+  return { n: Math.floor(hours / 24), unit: 'd' };
 }
