@@ -28,6 +28,7 @@ export function Login() {
   const navigate = useNavigate();
   const from = (useLocation().state as { from?: string } | null)?.from;
 
+  const [signedInOnOpen] = useState(session !== 'out');
   const [stage, setStage] = useState<Stage>('phone');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
@@ -42,8 +43,9 @@ export function Login() {
     return () => clearTimeout(timer);
   }, [resendIn]);
 
-  // Already signed in (for example, Back after logging in): go to your start page.
-  if (session !== 'out') return <Navigate to={role === 'desk' ? '/queue' : '/'} replace />;
+  // Already signed in when this page opened (for example, Back after logging in): go to your start page.
+  // Checked only on first render, so it can't race the navigation that a successful login starts.
+  if (signedInOnOpen) return <Navigate to={role === 'desk' ? '/queue' : '/'} replace />;
 
   const cleanPhone = normalisePhone(phone);
 

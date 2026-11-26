@@ -20,15 +20,25 @@ export function ReasonDialog({ open, title, body, actionLabel, destructive, onCo
   const field = useRef<HTMLTextAreaElement>(null);
   const ids = useId();
 
+  // Keep the latest onCancel in a ref, so a parent re-render (e.g. a live event every few seconds)
+  // does not re-run the effects below and wipe what the user is typing.
+  const cancelRef = useRef(onCancel);
+  cancelRef.current = onCancel;
+
+  // Clear the field only when the dialog opens.
   useEffect(() => {
     if (!open) return;
     setReason('');
     setShowError(false);
     field.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onCancel();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && cancelRef.current();
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, onCancel]);
+  }, [open]);
 
   if (!open) return null;
 
