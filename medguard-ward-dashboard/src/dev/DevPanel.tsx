@@ -3,6 +3,7 @@ import { Wrench, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MOCK_OTP, MOCK_PIN } from '../mock/auth';
+import { ESCALATE_AFTER_SECS } from '../mock/incidents';
 import { LIVE_INTERVAL_MS } from '../mock/liveEvents';
 import type { AlertTier, Role } from '../mock/types';
 import { useStore } from '../state/store';
@@ -11,11 +12,6 @@ const ROLES: { role: Role; label: string }[] = [
   { role: 'manager', label: 'Ward manager (Habib)' },
   { role: 'desk', label: 'Admission desk (Salma)' },
   { role: 'manager-senior', label: 'Manager as senior nurse' },
-];
-
-const LATER = [
-  { label: 'Fall Bed 7, no acknowledgement', step: 8 },
-  { label: 'Fall Bed 7, acknowledged', step: 8 },
 ];
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
@@ -29,9 +25,23 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 
 export function DevPanel() {
   const [open, setOpen] = useState(false);
-  const { role, session, liveOn, serverDown, forceErrors, quickLock, audit, beds, queue, cameras, dispatch } = useStore();
+  const { role, session, liveOn, serverDown, forceErrors, quickLock, audit, beds, queue, cameras, incidents, dispatch } = useStore();
   const mizanur = queue.find((q) => q.id === 'Q-3');
   const cam2Online = cameras.find((c) => c.id === 'CAM-02')?.online ?? true;
+  const fallOpen = incidents.some((i) => i.kind === 'fall' && !i.timeline.some((s) => s.step === 'acknowledged'));
+
+  // Fakes the Ward app side: the nurse either answers in 6 s, or not at all and it escalates.
+  const fall = (nurseAnswers: boolean) => {
+    // Next number after the existing incidents, e.g. INC-23.
+    const id = `INC-${Math.max(0, ...incidents.map((i) => Number(i.id.replace(/\D/g, '')) || 0)) + 1}`;
+    const start = Date.now();
+    dispatch({ type: 'fall-start', id, bedId: 7, at: new Date(start).toISOString() });
+    if (nurseAnswers) {
+      setTimeout(() => dispatch({ type: 'fall-ack', id, at: new Date().toISOString(), by: 'Nurse Rina Akter' }), 6000);
+    } else {
+      setTimeout(() => dispatch({ type: 'fall-escalate', id, at: new Date().toISOString(), to: 'Habib Rahman' }), ESCALATE_AFTER_SECS * 1000);
+    }
+  };
   const bed2Occupied = beds.find((b) => b.id === 2)?.status === 'occupied';
 
   // Close the panel on logout, so the login page starts clean.
@@ -136,13 +146,17 @@ export function DevPanel() {
         </button>
       </div>
 
-      <div className="mt-4 space-y-1 border-t border-border-subtle pt-2">
-        <p className="text-sm font-semibold text-ink-700">Coming in later steps</p>
-        {LATER.map((l) => (
-          <button key={l.label} type="button" disabled className="flex h-10 w-full items-center justify-between rounded-control px-2 text-left text-sm text-ink-500">
-            {l.label} <span className="text-xs">step {l.step}</span>
-          </button>
-        ))}
+      <div className="mt-4 space-y-2 border-t border-border-subtle pt-4">
+        <p className="text-sm font-semibold text-ink-700">Fall (from the camera AI)</p>
+        <button type="button" disabled={fallOpen} onClick={() => fall(false)} className="btn-secondary h-10 w-full text-sm">
+          Fall Bed 7, no acknowledgement
+        </button>
+        <button type="button" disabled={fallOpen} onClick={() => fall(true)} className="btn-secondary h-10 w-full text-sm">
+          Fall Bed 7, nurse acknowledges
+        </button>
+        <p className="text-xs text-ink-500">
+          No acknowledgement: after {ESCALATE_AFTER_SECS} s the alarm escalates to the manager, full screen.
+        </p>
       </div>
 
       <div className="mt-4 flex flex-col gap-2 border-t border-border-subtle pt-4 text-sm">

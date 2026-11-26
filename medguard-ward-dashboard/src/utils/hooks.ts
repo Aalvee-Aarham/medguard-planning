@@ -23,6 +23,16 @@ export function useAgo() {
   }, [t, now]);
 }
 
+/** Turns seconds into "48 s" or "4 min 10 s" in the current language. */
+export function useDuration() {
+  const t = useT();
+  return useCallback((secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = Math.round(secs % 60);
+    return m ? t('dur.ms', { m, s }) : t('dur.s', { s });
+  }, [t]);
+}
+
 /**
  * Simulates a screen's first load from the server: skeleton, then content, or the error state
  * when "Force errors" is on in the Dev panel. Live data itself comes from the store.

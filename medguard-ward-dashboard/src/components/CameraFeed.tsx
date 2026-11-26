@@ -158,7 +158,7 @@ export function CameraFeed({ camera, beds, events, now, snapshot, size = 'tile' 
 
       {size !== 'thumb' && (
         <>
-          <span className="absolute left-2 top-2 inline-flex items-center gap-2 rounded-full bg-surface/95 px-2 py-1 text-xs font-semibold tabular-nums shadow-bar">
+          <span className="absolute left-2 top-2 inline-flex items-center gap-2 rounded-full bg-surface/95 px-2 py-1 text-xs font-semibold tabular-nums text-ink-900 shadow-bar">
             {snapshot ? (
               <>{t('camera.snapshot')} · {formatTime(snapshot.at)}</>
             ) : (

@@ -5,8 +5,9 @@ import en from '../i18n/en.json';
 import { CLEANER, DOCTOR, PATIENTS, QUEUE, STAFF, USERS, WARDS, initialAlerts, initialBedEvents, initialBeds, initialCameraEvents, initialCameras } from '../mock/data';
 import { raise } from '../mock/queue';
 import { applySwap, initialSwaps, nextMonday } from '../mock/shifts';
+import { initialIncidents } from '../mock/incidents';
 import { LIVE_INTERVAL_MS, nextLiveEvent } from '../mock/liveEvents';
-import type { Alert, AuditEntry, Bed, BedEvent, Camera, CameraEvent, QueueEntry, Role, ShiftPlan, Staff, SwapRequest, User, Ward } from '../mock/types';
+import type { Alert, AuditEntry, Bed, BedEvent, Camera, CameraEvent, Incident, QueueEntry, Role, ShiftPlan, Staff, SwapRequest, User, Ward } from '../mock/types';
 
 export type Lang = 'en' | 'bn';
 
@@ -31,6 +32,9 @@ interface State {
   /** Next week's plan; null until the manager asks the AI for one. */
   shiftPlan: ShiftPlan | null;
   swaps: SwapRequest[];
+  incidents: Incident[];
+  /** Fall incident currently shown full screen to the manager (after escalation). */
+  alarmId: string | null;
   cameraEvents: CameraEvent[];
   alerts: Alert[];
   audit: AuditEntry[];
@@ -60,6 +64,11 @@ type Action =
   | { type: 'queue-add'; entry: QueueEntry }
   | { type: 'camera-online'; id: string; online: boolean; at: string }
   | { type: 'assign-beds'; beds: Record<string, number[]> }
+  | { type: 'fall-start'; id: string; bedId: number; at: string }
+  | { type: 'fall-escalate'; id: string; at: string; to: string }
+  | { type: 'fall-ack'; id: string; at: string; by: string }
+  | { type: 'fall-false'; id: string; at: string; by: string; reason: string }
+  | { type: 'incident-resolve'; id: string; at: string; by: string; outcome: string; notes: string }
   | { type: 'plan-set'; cells: ShiftPlan['cells']; aiProposed?: boolean }
   | { type: 'plan-publish'; at: string; by: string; note: string }
   | { type: 'swap-answer'; id: string; approve: boolean; answer: string; by: string }
@@ -110,6 +119,8 @@ function freshState(): State {
     staff: structuredClone(STAFF),
     shiftPlan: null,
     swaps: initialSwaps(),
+    incidents: initialIncidents(),
+    alarmId: null,
     cameraEvents: initialCameraEvents(beds),
     alerts: initialAlerts(),
     audit: [],
@@ -168,6 +179,62 @@ function reducer(state: State, action: Action): State {
         cameraEvents: ev.alert?.kind === 'visit' ? [visitEvent(state, ev.alert), ...state.cameraEvents].slice(0, 200) : state.cameraEvents,
       };
     }
+    case 'fall-start': {
+      const bed = state.beds.find((b) => b.id === action.bedId);
+      const patient = PATIENTS.find((p) => p.id === bed?.patientId)?.name ?? '';
+      const incident: Incident = {
+        id: action.id, kind: 'fall', bedId: action.bedId, patient, at: action.at, status: 'open',
+        timeline: [{ step: 'sent', at: action.at, by: bed?.cameraId ?? 'Camera' }],
+      };
+      return {
+        ...state,
+        incidents: [incident, ...state.incidents],
+        cameraEvents: bed ? [{ id: `ce-${action.id}`, cameraId: bed.cameraId, bedId: bed.id, kind: 'fall' as const, at: action.at }, ...state.cameraEvents] : state.cameraEvents,
+        alerts: [
+          {
+            id: `alert-${action.id}`, tier: 'critical', kind: 'fall', bedId: action.bedId, at: action.at, acknowledged: false,
+            title: { key: 'alert.fall.title', vars: { bed: action.bedId } },
+            detail: { key: 'alert.fallOpen.detail', vars: { patient } },
+          } satisfies Alert,
+          ...state.alerts,
+        ].slice(0, MAX_ALERTS),
+      };
+    }
+    case 'fall-escalate': {
+      const inc = state.incidents.find((i) => i.id === action.id);
+      if (!inc || inc.timeline.some((s) => s.step === 'acknowledged')) return state;
+      return {
+        ...state,
+        alarmId: action.id,
+        incidents: state.incidents.map((i) => (i.id === inc.id ? { ...i, managerAlarm: true, timeline: [...i.timeline, { step: 'escalated', at: action.at, by: action.to }] } : i)),
+      };
+    }
+    case 'fall-ack':
+    case 'fall-false': {
+      const inc = state.incidents.find((i) => i.id === action.id);
+      if (!inc || inc.timeline.some((s) => s.step === 'acknowledged')) return state;
+      const secs = Math.round((new Date(action.at).getTime() - new Date(inc.at).getTime()) / 1000);
+      const isFalse = action.type === 'fall-false';
+      const timeline: Incident['timeline'] = [...inc.timeline, { step: 'acknowledged', at: action.at, by: action.by }];
+      if (isFalse) timeline.push({ step: 'resolved', at: action.at, by: action.by, note: action.reason });
+      return {
+        ...state,
+        alarmId: state.alarmId === inc.id ? null : state.alarmId,
+        incidents: state.incidents.map((i) => (i.id === inc.id ? {
+          ...i, responseSecs: secs, timeline,
+          ...(isFalse ? { status: 'resolved' as const, outcome: 'outcome.falseAlarm', notes: action.reason } : {}),
+        } : i)),
+        alerts: state.alerts.map((a) => (a.id === `alert-${inc.id}` ? { ...a, acknowledged: true, acknowledgedBy: action.by } : a)),
+      };
+    }
+    case 'incident-resolve':
+      return {
+        ...state,
+        incidents: state.incidents.map((i) => (i.id === action.id && i.status === 'open' ? {
+          ...i, status: 'resolved', outcome: action.outcome, notes: action.notes,
+          timeline: [...i.timeline, { step: 'resolved', at: action.at, by: action.by }],
+        } : i)),
+      };
     case 'assign-beds':
       return { ...state, staff: state.staff.map((s) => (action.beds[s.id] ? { ...s, beds: action.beds[s.id] } : s)) };
     case 'plan-set': {

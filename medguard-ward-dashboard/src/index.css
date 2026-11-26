@@ -168,3 +168,12 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .fall-pulse { animation: none; }
 }
+
+/* ---------- Print (D19 "Export PDF" uses the browser's print dialog) ----------
+   Only the page content prints: no sidebar, top bar, drawers, toasts or Dev panel. */
+@media print {
+  aside, header, .fixed { display: none !important; }
+  body { background: #fff; }
+  main { max-width: none !important; padding: 0 !important; }
+  .break-inside-avoid { break-inside: avoid; }
+}

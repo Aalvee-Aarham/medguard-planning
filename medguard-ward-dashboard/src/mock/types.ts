@@ -112,7 +112,28 @@ export interface SwapRequest {
   by?: string;
 }
 
-export type AlertTier ='critical' | 'high' | 'normal';
+export type IncidentStep = 'sent' | 'escalated' | 'acknowledged' | 'resolved';
+
+/** A fall or a missed dose, with its alarm timeline (D16, D17). */
+export interface Incident {
+  id: string;
+  kind: 'fall' | 'missed';
+  bedId: number;
+  patient: string;
+  at: string;
+  status: 'open' | 'resolved';
+  /** Seconds from alarm to the first person acknowledging it. */
+  responseSecs?: number;
+  drug?: string;
+  timeline: { step: IncidentStep; at: string; by?: string; note?: string }[];
+  /** Translation key of the outcome, e.g. "outcome.noInjury". */
+  outcome?: string;
+  notes?: string;
+  /** The nurse's alarm went unanswered, so it reached the ward manager full screen. */
+  managerAlarm?: boolean;
+}
+
+export type AlertTier = 'critical' | 'high' | 'normal';
 export type AlertKind = 'fall' | 'overdue' | 'visit' | 'bed' | 'request' | 'camera' | 'test';
 
 /** Text stored as a translation key + values, so it switches language. Drug and person names stay as written. */

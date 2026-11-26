@@ -1,3 +1,4 @@
+import { FallAlarm } from './app/FallAlarm';
 import { LockScreen } from './app/LockScreen';
 import { AppRoutes } from './app/routes';
 import { useIdleLock } from './app/useIdleLock';
@@ -17,6 +18,8 @@ function Root() {
         <AppRoutes />
       </div>
       {locked && <LockScreen />}
+      {/* Above everything, even the lock screen: only falls take over the screen (safety rule 8). */}
+      <FallAlarm />
       <Toasts />
       {/* Testing tool: only in npm run dev, removed from the real build. */}
       {import.meta.env.DEV && <DevPanel />}

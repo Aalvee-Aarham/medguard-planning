@@ -8,7 +8,11 @@ import { BedBoard } from '../screens/beds/BedBoard';
 import { BedDetail } from '../screens/beds/BedDetail';
 import { CameraWall } from '../screens/camera/CameraWall';
 import { SingleCamera } from '../screens/camera/SingleCamera';
+import { IncidentDetail } from '../screens/incidents/IncidentDetail';
+import { IncidentLog } from '../screens/incidents/IncidentLog';
 import { Overview } from '../screens/overview/Overview';
+import { DoseCompliance } from '../screens/reports/DoseCompliance';
+import { Reports } from '../screens/reports/Reports';
 import { ShiftPlanner } from '../screens/shifts/ShiftPlanner';
 import { SwapRequests } from '../screens/shifts/SwapRequests';
 import { AssignBeds } from '../screens/staff/AssignBeds';
@@ -68,6 +72,10 @@ const BUILT: Record<string, () => React.ReactElement> = {
   D13: AssignBeds,
   D14: ShiftPlanner,
   D15: SwapRequests,
+  D16: IncidentLog,
+  D17: IncidentDetail,
+  D18: DoseCompliance,
+  D19: Reports,
 };
 
 export function AppRoutes() {
