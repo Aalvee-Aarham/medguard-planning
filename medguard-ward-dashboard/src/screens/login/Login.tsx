@@ -1,6 +1,6 @@
 // D1 Login: phone → OTP (mock 123456) → PIN (mock 1234).
-import { ArrowLeft, Info, ServerOff } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { AlertCircle, ArrowLeft, ArrowRight, Info, ServerOff } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Field } from '../../components/Field';
 import { LangToggle } from '../../components/LangToggle';
@@ -36,6 +36,10 @@ export function Login() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [resendIn, setResendIn] = useState(0);
+  const [errorTick, setErrorTick] = useState(0); // bumps on each new error so the field shakes again
+  const otpForm = useRef<HTMLFormElement>(null);
+
+  useEffect(() => { if (error) setErrorTick((n) => n + 1); }, [error]);
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -99,15 +103,22 @@ export function Login() {
 
   return (
     <AuthLayout aside={<LangToggle />}>
+      <div className="mb-1 flex gap-1.5" aria-hidden>
+        {[1, 2, 3].map((n) => (
+          <span key={n} className="h-1 flex-1 overflow-hidden rounded-full bg-sky-100">
+            <span className={`block h-full origin-left bg-sky-500 transition-transform duration-500 ${n <= stepNo ? 'scale-x-100' : 'scale-x-0'}`} />
+          </span>
+        ))}
+      </div>
       <p className="text-sm font-semibold text-ink-700 tabular-nums">{t('login.step', { n: stepNo })}</p>
 
       {stage === 'phone' && (
-        <form onSubmit={submitPhone} noValidate className="mt-2 space-y-6">
+        <form key="phone" onSubmit={submitPhone} noValidate className="auth-step-in mt-2 space-y-6">
           <div>
             <h1 className="text-2xl font-semibold">{t('login.phone.title')}</h1>
             <p className="mt-1 text-ink-700">{t('login.subtitle')}</p>
           </div>
-          <Field
+          <Shake tick={errorTick}><Field
             label={t('login.phone.label')}
             help={t('login.phone.help')}
             error={error}
@@ -119,34 +130,36 @@ export function Login() {
             autoComplete="tel-national"
             autoFocus
             className="tabular-nums"
-          />
-          <button type="submit" disabled={busy} className="btn-primary h-12 w-full">
-            {busy && <Spinner />} {t('login.phone.send')}
+          /></Shake>
+          <button type="submit" disabled={busy} className="btn-sky">
+            {busy ? <Spinner /> : null} {t('login.phone.send')} {!busy && <ArrowRight size={18} aria-hidden />}
           </button>
         </form>
       )}
 
       {stage === 'otp' && (
-        <form onSubmit={submitOtp} noValidate className="mt-2 space-y-6">
+        <form key="otp" ref={otpForm} onSubmit={submitOtp} noValidate className="auth-step-in mt-2 space-y-6">
           <div>
             <h1 className="text-2xl font-semibold">{t('login.otp.title')}</h1>
             <p className="mt-1 text-ink-700">{t('login.otp.sent', { phone: maskPhone(cleanPhone) })}</p>
           </div>
-          <Field
+          <OtpBoxes
             label={t('login.otp.label')}
-            error={error}
             value={otp}
-            onChange={(e) => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 6)); setError(''); }}
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            autoFocus
-            className="text-2xl tracking-[0.5em] tabular-nums"
+            error={error}
+            errorTick={errorTick}
+            onChange={(v) => {
+              setOtp(v);
+              setError('');
+              // All six typed: check straight away.
+              if (v.length === 6 && !busy) setTimeout(() => otpForm.current?.requestSubmit(), 0);
+            }}
           />
-          <button type="submit" disabled={busy || otp.length !== 6} className="btn-primary h-12 w-full">
+          <button type="submit" disabled={busy || otp.length !== 6} className="btn-sky">
             {busy && <Spinner />} {t('login.otp.verify')}
           </button>
           <div className="flex items-center justify-between text-sm">
-            <button type="button" onClick={() => back('phone')} className="inline-flex h-10 items-center gap-1 font-semibold text-primary-600 hover:underline">
+            <button type="button" onClick={() => back('phone')} className="inline-flex h-10 items-center gap-1 font-semibold text-sky-700 hover:underline">
               <ArrowLeft size={16} aria-hidden /> {t('login.otp.change')}
             </button>
             {resendIn > 0 ? (
@@ -155,7 +168,7 @@ export function Login() {
               <button
                 type="button"
                 onClick={() => { setResendIn(RESEND_SECONDS); setOtp(''); setError(''); toast(t('login.otp.resent')); }}
-                className="h-10 font-semibold text-primary-600 hover:underline"
+                className="h-10 font-semibold text-sky-700 hover:underline"
               >
                 {t('login.otp.resend')}
               </button>
@@ -165,12 +178,15 @@ export function Login() {
       )}
 
       {stage === 'pin' && (
-        <form onSubmit={submitPin} noValidate className="mt-2 space-y-6">
+        <form key="pin" onSubmit={submitPin} noValidate className="auth-step-in mt-2 space-y-6">
           <div>
             <h1 className="text-2xl font-semibold">{t('login.pin.title')}</h1>
             <p className="mt-1 text-ink-700">{t('login.pin.body')}</p>
           </div>
-          <Field
+          <div className="flex justify-center gap-4" aria-hidden>
+            {[0, 1, 2, 3].map((i) => <span key={i} className={`pin-dot ${i < pin.length ? 'is-on' : ''}`} />)}
+          </div>
+          <Shake tick={errorTick}><Field
             label={t('login.pin.label')}
             error={error}
             value={pin}
@@ -179,12 +195,12 @@ export function Login() {
             inputMode="numeric"
             autoComplete="current-password"
             autoFocus
-            className="text-2xl tracking-[0.5em]"
-          />
-          <button type="submit" disabled={busy || pin.length !== 4} className="btn-primary h-12 w-full">
+            className="text-center text-2xl tracking-[0.5em]"
+          /></Shake>
+          <button type="submit" disabled={busy || pin.length !== 4} className="btn-sky">
             {busy && <Spinner />} {t('login.pin.submit')}
           </button>
-          <button type="button" onClick={() => back('otp')} className="inline-flex h-10 items-center gap-1 text-sm font-semibold text-primary-600 hover:underline">
+          <button type="button" onClick={() => back('otp')} className="inline-flex h-10 items-center gap-1 text-sm font-semibold text-sky-700 hover:underline">
             <ArrowLeft size={16} aria-hidden /> {t('login.back')}
           </button>
         </form>
@@ -207,4 +223,79 @@ export function Login() {
       </div>}
     </AuthLayout>
   );
+}
+
+/** Six single-digit boxes for the text-message code. Typing moves forward, Backspace moves back, paste fills all. */
+function OtpBoxes({ label, value, error, errorTick, onChange }: {
+  label: string; value: string; error: string; errorTick: number; onChange: (v: string) => void;
+}) {
+  const boxes = useRef<(HTMLInputElement | null)[]>([]);
+  // Latest value, read when focus moves: the next box gets focus before React re-renders with the new digit.
+  const latest = useRef(value);
+  latest.current = value;
+  const emit = (v: string) => { latest.current = v; onChange(v); };
+  const focus = (i: number) => boxes.current[Math.max(0, Math.min(5, i))]?.focus();
+  useEffect(() => { focus(0); }, []);
+
+  const setAt = (i: number, digit: string) => {
+    const chars = latest.current.padEnd(6, ' ').split('');
+    chars[i] = digit || ' ';
+    emit(chars.join('').replace(/\s+$/, '').replace(/\s/g, ''));
+  };
+
+  return (
+    <fieldset>
+      <legend className="block font-semibold">{label}</legend>
+      <Shake tick={errorTick} className="mt-2 flex gap-2">
+        {Array.from({ length: 6 }, (_, i) => (
+          <input
+            key={i}
+            ref={(el) => { boxes.current[i] = el; }}
+            value={value[i] ?? ''}
+            aria-label={`${label} ${i + 1}`}
+            aria-invalid={!!error}
+            inputMode="numeric"
+            autoComplete={i === 0 ? 'one-time-code' : 'off'}
+            maxLength={1}
+            onFocus={() => { if (i > latest.current.length) focus(latest.current.length); }}
+            className={`otp-box ${value[i] ? 'is-filled' : ''} ${error ? '!border-danger-text' : ''}`}
+            onChange={(e) => {
+              const digits = e.target.value.replace(/\D/g, '');
+              if (digits.length > 1) { emit((latest.current.slice(0, i) + digits).slice(0, 6)); focus(i + digits.length); return; }
+              setAt(i, digits);
+              if (digits) focus(i + 1);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Backspace' && !latest.current[i]) { e.preventDefault(); setAt(i - 1, ''); focus(i - 1); }
+              if (e.key === 'ArrowLeft') focus(i - 1);
+              if (e.key === 'ArrowRight') focus(i + 1);
+            }}
+            onPaste={(e) => {
+              e.preventDefault();
+              const digits = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+              if (digits) { emit(digits); focus(digits.length); }
+            }}
+          />
+        ))}
+      </Shake>
+      {error && (
+        <p role="alert" className="mt-1 flex items-center gap-1 text-sm text-danger-text">
+          <AlertCircle size={16} aria-hidden className="shrink-0" /> {error}
+        </p>
+      )}
+    </fieldset>
+  );
+}
+
+/** Gives its content a short side-to-side shake each time `tick` goes up (a new error). Skipped under "reduce motion". */
+function Shake({ tick, className, children }: { tick: number; className?: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!tick || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    ref.current?.animate(
+      [{ transform: 'none' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'none' }],
+      { duration: 350 },
+    );
+  }, [tick]);
+  return <div ref={ref} className={className}>{children}</div>;
 }

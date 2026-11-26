@@ -76,3 +76,86 @@ body {
     @apply h-12 rounded-control border border-border-input bg-surface px-3 focus:border-2 focus:border-primary-600 focus:outline-none focus:ring-4 focus:ring-primary-100;
   }
 }
+
+/* ---------- Login scene (D1, D2): sky-blue animated background ----------
+   The only place with ambient motion; the ward screens stay calm.
+   Everything stops under "reduce motion". */
+.auth-scene {
+  background: linear-gradient(180deg, var(--color-sky-50) 0%, var(--color-sky-100) 45%, var(--color-sky-200) 100%);
+}
+.auth-scene .input:focus {
+  border-color: var(--color-sky-600);
+  --tw-ring-color: var(--color-sky-100);
+}
+.auth-scene :focus-visible { outline-color: var(--color-sky-700); }
+
+.btn-sky {
+  @apply relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-[12px] bg-sky-700 px-4 font-semibold text-white transition hover:-translate-y-px hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+}
+.btn-sky::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
+  transform: skewX(-20deg);
+  animation: auth-shine 3s ease-in-out infinite;
+}
+.btn-sky:disabled::after { animation: none; }
+
+.auth-orb {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 35%, #fff, var(--color-sky-200) 60%, transparent 70%);
+  opacity: 0.7;
+  animation: auth-drift 14s ease-in-out infinite alternate;
+}
+.auth-sticker {
+  position: absolute;
+  bottom: -70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 3px solid var(--color-sky-200);
+  background: #fff;
+  color: var(--color-sky-600);
+  animation: auth-float linear infinite;
+}
+.auth-sticker.is-solid { background: var(--color-sky-500); color: #fff; border-color: #fff; }
+.auth-wave { position: absolute; bottom: 0; left: 0; width: 200%; animation: auth-wave linear infinite; }
+.auth-card { animation: auth-rise 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.auth-logo::before,
+.auth-logo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid var(--color-sky-400);
+  animation: auth-ring 2.4s ease-out infinite;
+}
+.auth-logo::after { animation-delay: 1.2s; }
+.auth-step-in { animation: auth-slide 0.35s ease-out; }
+.otp-box { @apply h-14 w-full rounded-[12px] border-[1.5px] border-sky-200 bg-white text-center text-2xl tabular-nums transition focus:border-sky-600 focus:outline-none focus:ring-4 focus:ring-sky-100; }
+.otp-box.is-filled { @apply -translate-y-[3px] border-sky-500 bg-sky-50; }
+.pin-dot { @apply h-[18px] w-[18px] rounded-full border-2 border-sky-500 transition duration-200; }
+.pin-dot.is-on { @apply scale-125 bg-sky-500; }
+
+@keyframes auth-shine { 0%, 60% { left: -60%; } 100% { left: 130%; } }
+@keyframes auth-drift { to { transform: translate(40px, -30px) scale(1.1); } }
+@keyframes auth-float {
+  0% { transform: translateY(0) rotate(-10deg); opacity: 0; }
+  10%, 90% { opacity: 1; }
+  100% { transform: translateY(-110vh) rotate(15deg); opacity: 0; }
+}
+@keyframes auth-wave { to { transform: translateX(-50%); } }
+@keyframes auth-rise { from { opacity: 0; transform: translateY(40px); } }
+@keyframes auth-ring { from { transform: scale(1); opacity: 0.8; } to { transform: scale(1.7); opacity: 0; } }
+@keyframes auth-slide { from { opacity: 0; transform: translateX(18px); } }
+@keyframes auth-ecg { from { stroke-dashoffset: 1020; } to { stroke-dashoffset: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-scene *, .auth-scene *::before, .auth-scene *::after { animation: none !important; transition: none !important; }
+  .auth-sticker { display: none; }
+}
