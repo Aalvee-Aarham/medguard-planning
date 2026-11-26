@@ -10,62 +10,8 @@ import { EmptyState } from '../../components/states'
 
 /* ---------------- I. Family and caregivers ---------------- */
 
-/** H53 Family */
-export function Family() {
-  const { s, mutate, setLimitHit } = useApp()
-  const t = useT()
-  const nav = useNavigate()
-  const max = s.subscription.plan === 'premium' ? 8 : 2
-  return (
-    <Screen>
-      <PageHeader title={t('Family')} sub={<span className="tabular">{t('{n} of {max} profiles on your plan', { n: s.profiles.length, max })}</span>} />
-      <ul className="flex flex-col gap-3">
-        {s.profiles.map((p) => (
-          <li key={p.id}>
-            <Card>
-              <div className="flex items-center gap-3">
-                <Avatar name={p.name} size={48} />
-                <div className="flex-1">
-                  <p className="text-h3 font-semibold">{p.name}</p>
-                  <p className="text-small text-ink-700">{p.relation === 'self' ? t('You') : t(p.relation[0].toUpperCase() + p.relation.slice(1))}</p>
-                </div>
-                {p.role === 'caregiver-view' && <StatusChip status="viewonly" />}
-              </div>
-              <div className="mt-3 flex gap-2">
-                <Button
-                  variant="secondary"
-                  className="flex-1"
-                  onClick={() => {
-                    mutate((d) => void (d.activeProfileId = p.id))
-                    nav('/record')
-                  }}
-                >
-                  {t('Open record')}
-                </Button>
-                {p.role === 'owner' && p.relation !== 'self' && (
-                  <Button variant="tertiary" className="flex-1" to={`/family/${p.id}/caregivers`}>
-                    {t('Caregivers')}
-                  </Button>
-                )}
-              </div>
-            </Card>
-          </li>
-        ))}
-      </ul>
-      <Button full className="mt-6" onClick={() => (s.profiles.length >= max ? setLimitHit('profiles') : nav('/family/add'))}>
-        {t('Add family member')}
-      </Button>
-      {s.invites.some((i) => i.status === 'pending') && (
-        <Note tone="info" className="mt-4">
-          {t('You have an invitation to manage a profile.')}{' '}
-          <a className="font-semibold underline" href={`/invites/${s.invites.find((i) => i.status === 'pending')!.id}`} onClick={(e) => (e.preventDefault(), nav(`/invites/${s.invites.find((i) => i.status === 'pending')!.id}`))}>
-            {t('Open invitation')}
-          </a>
-        </Note>
-      )}
-    </Screen>
-  )
-}
+/** H53 Family: see FamilyHub.tsx */
+export { Family } from './FamilyHub'
 
 /** H54 Add family member: create new, or link existing by invitation */
 export function AddFamily() {

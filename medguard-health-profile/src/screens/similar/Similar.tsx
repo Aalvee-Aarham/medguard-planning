@@ -3,48 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import { AlertOctagon, Bookmark, BookmarkCheck, ChevronDown, ChevronUp, MapPin, Phone, Search, Share2 } from 'lucide-react'
 import { useApp, LIMITS } from '../../state/store'
 import { useT } from '../../i18n'
-import { Button, Card, Checkbox, List, ListRow, Note, PageHeader, Screen, SectionTitle, Stack, Toggle } from '../../components/ui'
+import { Button, Card, List, ListRow, PageHeader, Screen, SectionTitle, Stack, Toggle } from '../../components/ui'
 import { NeedsInternet } from '../../components/status'
 import { EmptyState, Loadable, ListSkeleton } from '../../components/states'
 import { useFakeLoad } from '../../mock/api'
 
 /* ---------------- G. Similar cases ---------------- */
 
-/** H41 Disclaimer (first time only) */
-export function SimilarDisclaimer() {
-  const { mutate } = useApp()
-  const t = useT()
-  const nav = useNavigate()
-  const [ok, setOk] = useState(false)
-  return (
-    <Screen>
-      <PageHeader title={t('Before you look at similar cases')} />
-      <Stack>
-        <Note tone="warning" icon={AlertOctagon}>
-          <span className="font-semibold">{t('This is not a diagnosis.')}</span>
-        </Note>
-        <Card>
-          <ul className="flex flex-col gap-2 text-body">
-            <li>• {t('These are published cases written by doctors. The people in them may differ from you in ways the app cannot see.')}</li>
-            <li>• {t('Outcomes are hidden until you choose to see them.')}</li>
-            <li>• {t('Share any case with your doctor and talk it through.')}</li>
-          </ul>
-        </Card>
-        <Checkbox label={t('I understand this is not medical advice')} checked={ok} onChange={setOk} />
-        <Button
-          full
-          disabled={!ok}
-          onClick={() => {
-            mutate((d) => void (d.settings.similarAccepted = true))
-            nav('/similar', { replace: true })
-          }}
-        >
-          {t('Accept and continue')}
-        </Button>
-      </Stack>
-    </Screen>
-  )
-}
+/** H41 Disclaimer (first time only): see Disclaimer.tsx */
+export { SimilarDisclaimer } from './Disclaimer'
 
 /** H42 Search setup */
 export function SimilarSetup() {

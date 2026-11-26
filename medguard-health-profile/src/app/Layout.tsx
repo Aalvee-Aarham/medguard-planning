@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Bell, BellRing, Check, ChevronDown, CircleHelp, ClipboardList, Home, Menu, MessageCircle, Pill, Plus, Search, Settings, Share2, ShieldAlert, Sparkles, Stethoscope, Users, type LucideIcon } from 'lucide-react'
+import { Bell, BellRing, Check, ChevronDown, ChevronRight, CircleHelp, ClipboardList, Home, LayoutGrid, Menu, MessageCircle, Pill, Plus, Search, Settings, Share2, ShieldAlert, Sparkles, Stethoscope, Users, type LucideIcon } from 'lucide-react'
 import { LogoDraw } from '../components/CheckDraw'
 import { EmptyArt } from '../components/art'
 import { useApp } from '../state/store'
@@ -9,7 +9,7 @@ import { Avatar, Button, cx } from '../components/ui'
 import { OfflineBanner, StatusChip } from '../components/status'
 import { Sheet } from '../components/overlays'
 import { age } from '../lib/format'
-import { gsap, MOTION_OK } from '../lib/motion'
+import { gsap, MOTION_OK, prefersReduced } from '../lib/motion'
 
 /** H52 profile switcher: avatar + name always shows whose profile is open */
 export function ProfileSwitcher() {
@@ -90,8 +90,8 @@ function TopBar() {
   const t = useT()
   const unread = s.notifications.filter((n) => !n.read).length
   return (
-    <header className="sticky top-0 z-30 bg-surface shadow-bar">
-      <div className="flex h-16 items-center gap-2 px-2 lg:px-6">
+    <header className="topbar sticky top-0 z-30">
+      <div className="flex h-16 items-center gap-2 px-2 lg:h-[76px] lg:px-6">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <ProfileSwitcher />
         </div>
@@ -100,14 +100,87 @@ function TopBar() {
             MedGuard
           </span>
         )}
-        <NavLink to="/notifications" aria-label={unread ? t('Notifications, {n} unread', { n: unread }) : t('Notifications')} className="relative grid size-12 place-items-center rounded-full hover:bg-primary-50">
-          <Bell className="size-6" strokeWidth={1.75} />
-          {unread > 0 && <span className="absolute top-2 right-2 grid h-5 min-w-5 place-items-center rounded-full bg-danger-text px-1 text-caption font-semibold text-white">{unread}</span>}
-        </NavLink>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <TopIcon to="/help" icon={CircleHelp} label={t('Help')} className="hidden sm:grid" />
+          <TopIcon to="/settings" icon={Settings} label={t('Settings')} className="hidden sm:grid" spin />
+          <TopIcon to="/notifications" icon={Bell} label={unread ? t('Notifications, {n} unread', { n: unread }) : t('Notifications')} tip={t('Notifications')} badge={unread} ring />
+          <MoreMenu />
+        </div>
       </div>
       <OfflineBanner />
       <HighBanner />
     </header>
+  )
+}
+
+/** Round glass icon button for the top bar, with a label that drops in on hover or focus */
+function TopIcon({ to, icon: Icon, label, tip, badge, className, spin, ring }: { to: string; icon: LucideIcon; label: string; tip?: string; badge?: number; className?: string; spin?: boolean; ring?: boolean }) {
+  return (
+    <NavLink to={to} aria-label={label} className={({ isActive }) => cx('top-icon group relative size-11 place-items-center rounded-2xl', !className && 'grid', className, isActive && 'is-active')}>
+      <Icon className={cx('size-[22px] transition-transform duration-300', spin && 'group-hover:rotate-90', ring && 'group-hover:animate-[bell-ring_600ms_ease-in-out]')} strokeWidth={1.75} aria-hidden />
+      {!!badge && <span className="badge-pop absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-danger-text px-1 text-caption font-semibold text-white">{badge}</span>}
+      <span aria-hidden className="top-tip pointer-events-none absolute top-full left-1/2 mt-2 -translate-x-1/2 rounded-full px-2.5 py-1 text-caption font-semibold whitespace-nowrap">
+        {tip ?? label}
+      </span>
+    </NavLink>
+  )
+}
+
+/** "More" menu: Premium and Share and access (plus Help and Settings on phones, where the icons are hidden) */
+function MoreMenu() {
+  const t = useT()
+  const loc = useLocation()
+  const [open, setOpen] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
+  useEffect(() => setOpen(false), [loc.pathname])
+  useEffect(() => {
+    if (!open) return
+    const off = (e: PointerEvent) => !box.current?.contains(e.target as Node) && setOpen(false)
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    document.addEventListener('pointerdown', off)
+    document.addEventListener('keydown', esc)
+    return () => {
+      document.removeEventListener('pointerdown', off)
+      document.removeEventListener('keydown', esc)
+    }
+  }, [open])
+  const items: { to: string; icon: LucideIcon; label: string; sub: string; premium?: boolean; phone?: boolean }[] = [
+    { to: '/premium', icon: Sparkles, label: 'Premium', sub: 'More profiles, searches and storage', premium: true },
+    { to: '/share/access', icon: Share2, label: 'Share and access', sub: 'Who can see your record' },
+    { to: '/help', icon: CircleHelp, label: 'Help', sub: 'Answers and support', phone: true },
+    { to: '/settings', icon: Settings, label: 'Settings', sub: 'Account, app and your data', phone: true },
+  ]
+  return (
+    <div ref={box} className="relative">
+      <button type="button" aria-haspopup="true" aria-expanded={open} aria-label={t('More')} onClick={() => setOpen((o) => !o)} className={cx('top-icon group relative grid size-11 place-items-center rounded-2xl', open && 'is-active')}>
+        <LayoutGrid className={cx('size-[22px] transition-transform duration-300', open ? 'rotate-45' : 'group-hover:rotate-45')} strokeWidth={1.75} aria-hidden />
+        {!open && (
+          <span aria-hidden className="top-tip pointer-events-none absolute top-full left-1/2 mt-2 -translate-x-1/2 rounded-full px-2.5 py-1 text-caption font-semibold whitespace-nowrap">
+            {t('More')}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div className="more-pop absolute top-full right-0 z-40 mt-3 w-[300px] origin-top-right rounded-[24px] p-2">
+          <ul className="flex flex-col gap-1">
+            {items.map((it, i) => (
+              <li key={it.to} className={cx(it.phone && 'sm:hidden')} style={{ '--i': i } as React.CSSProperties}>
+                <NavLink to={it.to} className={({ isActive }) => cx('more-item group flex min-h-14 items-center gap-3 rounded-2xl p-2', it.premium && 'is-premium', isActive && 'is-active')}>
+                  <span className={cx('grid size-11 shrink-0 place-items-center rounded-xl transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-105', it.premium ? 'premium-icon' : 'skeuo-icon')}>
+                    <it.icon className="size-5" strokeWidth={1.75} aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold text-ink-900">{t(it.label)}</span>
+                    <span className="block truncate text-caption text-ink-700">{t(it.sub)}</span>
+                  </span>
+                  <ChevronRight className="size-4 text-ink-500 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -202,54 +275,86 @@ function BottomNav() {
 }
 
 /**
- * Desktop sidebar (theme prompt: 248 px, white; active item primary-50 background,
- * primary-700 text, 3 px blue bar on the left). Shown from 1024 px; phones keep the bottom nav.
+ * Desktop sidebar: a floating glass dock of icon tiles, only as tall as its items, centred on the left edge and gently bobbing, (1024 px and up; phones keep the bottom nav).
+ * Hover works like a dock: the tile under the pointer and its neighbours grow, the tile glows and
+ * tilts, and its name slides out in a glass label. Labels also show on keyboard focus and stay in the
+ * accessibility tree, so screen readers read every link by name. A glowing marker slides to the open page.
+ * Settings, Help, Premium, Share and access and Notifications live in the top bar.
  */
 function Sidebar() {
   const { s } = useApp()
   const t = useT()
-  const unread = s.notifications.filter((n) => !n.read).length
-  const items: { to: string; icon: LucideIcon; label: string; badge?: number }[] = [
+  const loc = useLocation()
+  const list = useRef<HTMLUListElement>(null)
+  const [mark, setMark] = useState<{ y: number; on: boolean }>({ y: 0, on: false })
+  const items: { to: string; icon: LucideIcon; label: string }[] = [
     ...(s.account.type === 'doctor' ? [{ to: '/doctor', icon: Stethoscope, label: 'Doctor home' }] : []),
     { to: '/home', icon: Home, label: 'Home' },
     { to: '/record', icon: ClipboardList, label: 'My Record' },
     { to: '/ai', icon: MessageCircle, label: 'Ask AI' },
     { to: '/medicines', icon: Pill, label: 'Medicines' },
     { to: '/similar', icon: Search, label: 'Similar cases' },
-    { to: '/share/access', icon: Share2, label: 'Share and access' },
     { to: '/family', icon: Users, label: 'Family' },
-    { to: '/notifications', icon: Bell, label: 'Notifications', badge: unread },
-    { to: '/premium', icon: Sparkles, label: 'Premium' },
-    { to: '/settings', icon: Settings, label: 'Settings' },
-    { to: '/help', icon: CircleHelp, label: 'Help' },
   ]
+
+  // slide the marker to the active tile
+  useEffect(() => {
+    const el = list.current?.querySelector<HTMLElement>('a.is-active')
+    if (!el || !list.current) return setMark((m) => ({ ...m, on: false }))
+    setMark({ y: el.offsetTop + el.offsetHeight / 2, on: true })
+  }, [loc.pathname, items.length])
+
+  // dock magnification: --m on each tile from its distance to the pointer
+  useEffect(() => {
+    const ul = list.current
+    if (!ul || prefersReduced() || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+    const tiles = () => Array.from(ul.querySelectorAll<HTMLElement>('.rail-tile'))
+    let raf = 0
+    const move = (e: PointerEvent) => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        for (const el of tiles()) {
+          const r = el.getBoundingClientRect()
+          const d = Math.abs(e.clientY - (r.top + r.height / 2))
+          const m = Math.max(0, 1 - d / 110)
+          el.style.setProperty('--m', (m * m).toFixed(3))
+          el.style.setProperty('--ry', `${((e.clientX - (r.left + r.width / 2)) / r.width) * 18}deg`)
+          el.style.setProperty('--rx', `${(((r.top + r.height / 2) - e.clientY) / r.height) * 18}deg`)
+        }
+      })
+    }
+    const leave = () => {
+      cancelAnimationFrame(raf)
+      for (const el of tiles()) {
+        el.style.setProperty('--m', '0')
+        el.style.setProperty('--rx', '0deg')
+        el.style.setProperty('--ry', '0deg')
+      }
+    }
+    ul.addEventListener('pointermove', move)
+    ul.addEventListener('pointerleave', leave)
+    return () => {
+      cancelAnimationFrame(raf)
+      ul.removeEventListener('pointermove', move)
+      ul.removeEventListener('pointerleave', leave)
+    }
+  }, [])
+
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-border-subtle bg-surface lg:flex">
-      <div className="flex h-16 items-center gap-2 px-6">
-        <LogoDraw size={32} />
-        <span className="text-h3 font-bold text-primary-700">MedGuard</span>
-      </div>
-      <div className="px-4 pt-2 pb-4">
-        <NavLink to="/upload" className="btn flex min-h-12 items-center justify-center gap-2 rounded-control bg-primary-600 px-4 font-semibold text-white hover:bg-primary-700">
-          <Plus className="size-5" strokeWidth={2} aria-hidden /> {t('Upload')}
-        </NavLink>
-      </div>
-      <nav aria-label={t('Main')} className="flex-1 overflow-y-auto pb-6">
-        <ul className="flex flex-col gap-1">
-          {items.map(({ to, icon: Icon, label, badge }) => (
+    <aside className="rail glass-strong fixed left-4 z-40 hidden w-[80px] flex-col items-center rounded-[32px] py-4 lg:flex">
+      <NavLink to="/upload" aria-label={t('Upload')} className="rail-upload group relative grid size-14 place-items-center rounded-[20px] text-white">
+        <Plus className="size-7 transition-transform duration-300 group-hover:rotate-90" strokeWidth={2.25} aria-hidden />
+        <span aria-hidden className="rail-tip">{t('Upload')}</span>
+      </NavLink>
+      <nav aria-label={t('Main')} className="relative mt-5 flex w-full flex-col items-center">
+        <span aria-hidden className={cx('rail-mark', mark.on && 'on')} style={{ transform: `translateY(${mark.y}px)` }} />
+        <ul ref={list} className="flex flex-col items-center gap-2.5">
+          {items.map(({ to, icon: Icon, label }) => (
             <li key={to}>
-              <NavLink
-                to={to}
-                className={({ isActive }) =>
-                  cx(
-                    'relative flex min-h-12 items-center gap-3 px-6 font-semibold transition-colors',
-                    isActive ? 'bg-primary-50 text-primary-700 before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-primary-600' : 'text-ink-700 hover:bg-primary-50',
-                  )
-                }
-              >
-                <Icon className="size-5" strokeWidth={1.75} aria-hidden />
-                <span className="flex-1">{t(label)}</span>
-                {!!badge && <span className="grid h-6 min-w-6 place-items-center rounded-full bg-danger-text px-2 text-caption font-semibold text-white">{badge}</span>}
+              <NavLink to={to} className={({ isActive }) => cx('rail-tile group relative grid size-[52px] place-items-center rounded-[18px]', isActive && 'is-active')}>
+                <span aria-hidden className="rail-glow" />
+                <Icon className="rail-ico relative size-6" strokeWidth={1.75} aria-hidden />
+                <span className="rail-tip">{t(label)}</span>
               </NavLink>
             </li>
           ))}
@@ -280,7 +385,7 @@ export function AppLayout() {
         Skip to content
       </a>
       <Sidebar />
-      <div className="pb-24 lg:pb-8 lg:pl-[248px]">
+      <div className="pb-24 lg:pb-8 lg:pl-[108px]">
         <TopBar />
         <main id="main" ref={ref} className="mx-auto w-full max-w-[1440px]">
           <Outlet />
