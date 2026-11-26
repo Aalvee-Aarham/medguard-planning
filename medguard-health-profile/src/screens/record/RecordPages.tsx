@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BpDial, EntryCard, TypeTile, hueVars } from "./entryArt";
 import {
   Link,
   useNavigate,
@@ -1535,40 +1536,17 @@ export function ManualEntry() {
         aria-label={t("Type")}
         className="grid grid-cols-2 gap-3 sm:grid-cols-3"
       >
-        {TYPES.map((x) => {
-          const on = x.v === type;
-          return (
-            <button
-              key={x.v}
-              type="button"
-              role="radio"
-              aria-checked={on}
-              onClick={() => (setType(x.v), setErr(""))}
-              className={cx(
-                "group relative flex min-h-24 flex-col items-start gap-2 rounded-[20px] p-3 text-left transition-all duration-200",
-                on ? "neu-inset ring-2 ring-primary-600" : "neu neu-press",
-              )}
-            >
-              <span
-                className={cx(
-                  "grid size-11 place-items-center rounded-2xl transition-transform group-hover:-rotate-6",
-                  on ? "skeuo-icon" : "bg-primary-50 text-primary-600",
-                )}
-              >
-                <x.icon className="size-5" strokeWidth={1.75} aria-hidden />
-              </span>
-              <span className="text-small font-semibold">{t(x.l)}</span>
-              <span className="hidden text-caption text-ink-700 sm:block">
-                {t(x.hint)}
-              </span>
-              {on && (
-                <span className="absolute top-3 right-3 grid size-6 place-items-center rounded-full bg-primary-600 text-white">
-                  <Check className="size-4" strokeWidth={3} aria-hidden />
-                </span>
-              )}
-            </button>
-          );
-        })}
+        {TYPES.map((x) => (
+          <TypeTile
+            key={x.v}
+            type={x.v}
+            icon={x.icon}
+            label={t(x.l)}
+            hint={t(x.hint)}
+            on={x.v === type}
+            onPick={() => (setType(x.v), setErr(""))}
+          />
+        ))}
       </div>
     </section>
   );
@@ -1591,12 +1569,13 @@ export function ManualEntry() {
         <MedicineBuilder tiles={typeTiles} />
       ) : (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-          <div className="flex min-w-0 flex-col gap-6">
+          {/* hue vars live here, not on the form: data-rise clears the risen element's inline style */}
+          <div className="flex min-w-0 flex-col gap-6" style={hueVars(type)}>
             {typeTiles}
 
             <form
               data-rise
-              className="glass glass-sheen flex flex-col gap-4 rounded-[24px] p-4 md:p-6"
+              className="entry-form glass glass-sheen flex flex-col gap-4 rounded-[24px] p-4 md:p-6"
               onSubmit={(e) => {
                 e.preventDefault();
                 const name =
@@ -1651,12 +1630,10 @@ export function ManualEntry() {
                 nav(type === "medicines" ? "/medicines" : "/record");
               }}
             >
-              <h2 className="flex items-center gap-2 text-h3 font-semibold">
-                <cur.icon
-                  className="size-5 text-primary-600"
-                  strokeWidth={1.75}
-                  aria-hidden
-                />
+              <h2 className="flex items-center gap-3 text-h3 font-semibold">
+                <span className="type-ico grid size-10 place-items-center rounded-xl">
+                  <cur.icon className="size-5" strokeWidth={1.75} aria-hidden />
+                </span>
                 {t(cur.l)}
               </h2>
               {type === "vitals" ? (
@@ -1745,46 +1722,31 @@ export function ManualEntry() {
           </div>
 
           <aside className="flex flex-col gap-5 lg:sticky lg:top-24 lg:self-start">
-            <Panel neu title={t("Preview")}>
-              <div className="glass rounded-[20px] p-4" aria-live="polite">
-                <div className="flex items-start gap-3">
-                  <span className="skeuo-icon grid size-12 shrink-0 place-items-center rounded-2xl">
-                    <cur.icon
-                      className="size-6"
-                      strokeWidth={1.75}
-                      aria-hidden
-                    />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-caption font-semibold tracking-wide text-ink-500 uppercase">
-                      {t(cur.l)}
-                    </p>
-                    <p
-                      className={cx(
-                        "font-semibold break-words",
-                        !previewTitle && "text-ink-500 italic",
-                      )}
-                    >
-                      {previewTitle || t("Name appears here")}
-                    </p>
-                    {f.detail && type !== "medicines" && type !== "vitals" && (
-                      <p className="text-small break-words text-ink-700">
-                        {f.detail}
-                      </p>
-                    )}
-                    {type === "medicines" && (
-                      <p className="text-small text-ink-700 tabular">
-                        {t("Reminder at {time}", { time: f.time })}
-                      </p>
-                    )}
-                    <p className="mt-2 flex items-center gap-1 text-caption text-ink-700">
-                      <User className="size-3.5" aria-hidden />{" "}
-                      {t("Entered by you")}, {f.date ? fmtDate(f.date) : ""}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Panel>
+            <section data-rise aria-label={t("Preview")}>
+              <p className="mb-2 px-1 text-caption font-bold tracking-[0.16em] text-primary-600 uppercase">
+                {t("Preview")}
+              </p>
+              <EntryCard
+                type={type}
+                icon={cur.icon}
+                kind={t(cur.l)}
+                title={previewTitle}
+                placeholder={t("Name appears here")}
+                detail={type !== "medicines" && type !== "vitals" ? f.detail : undefined}
+                sub={
+                  type === "medicines" ? (
+                    <span className="tabular">
+                      {t("Reminder at {time}", { time: f.time })}
+                    </span>
+                  ) : undefined
+                }
+                date={f.date ? fmtDate(f.date) : ""}
+              >
+                {type === "vitals" && (
+                  <BpDial sys={Number(f.sys) || 0} dia={Number(f.dia) || 0} />
+                )}
+              </EntryCard>
+            </section>
             <div
               data-rise
               className="glass flex gap-3 rounded-[20px] p-4 text-small text-ink-700"

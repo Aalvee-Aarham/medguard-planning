@@ -1,82 +1,18 @@
 import { useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { AlertTriangle, ArrowLeft, ArrowRight, Camera, CheckCircle2, Copy, FileText, FileWarning, Image as ImageIcon, Keyboard, Pill, RefreshCw, Trash2, UserX, ZoomIn } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, ArrowRight, Camera, CheckCircle2, Copy, FileWarning, Keyboard, Pill, RefreshCw, Trash2, UserX, ZoomIn } from 'lucide-react'
 import { useApp, uid } from '../../state/store'
 import { useT } from '../../i18n'
 import { ActionBar, Button, Card, cx, ListRow, List, Note, PageHeader, Screen, Select, Stack } from '../../components/ui'
-import { AiField, NeedsInternet, StatusChip } from '../../components/status'
+import { AiField, StatusChip } from '../../components/status'
 import { Sheet } from '../../components/overlays'
 import { DocThumb } from '../../components/art'
 import { CheckDraw } from '../../components/CheckDraw'
 import { makeBatch } from '../../lib/batch'
 import type { Issue, RecordSection } from '../../mock/types'
 
-/** H19 Upload source + which profile */
-export function UploadSource() {
-  const { s, profile, mutate, online, can } = useApp()
-  const t = useT()
-  const nav = useNavigate()
-  const file = useRef<HTMLInputElement>(null)
-  const pdf = useRef<HTMLInputElement>(null)
-  const [forId, setFor] = useState(profile.id)
-  const writable = s.profiles.filter((p) => p.role !== 'caregiver-view')
-  const start = (names: string[]) => {
-    const b = makeBatch(forId, names)
-    mutate((d) => {
-      d.batches.push(b)
-    })
-    nav(`/upload/${b.id}`)
-  }
-  if (!can('upload'))
-    return (
-      <Screen>
-        <PageHeader title={t('Upload')} back={false} />
-        <Note tone="neutral">{t('View only. Ask {name} to change this.', { name: s.account.name })}</Note>
-      </Screen>
-    )
-  return (
-    <Screen>
-      <PageHeader title={t('Add documents')} back={false} sub={t('Prescriptions, test reports, discharge papers.')} />
-      <Select label={t('This is for')} value={forId} onChange={(e) => setFor(e.target.value)}>
-        {writable.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.name}
-          </option>
-        ))}
-      </Select>
-      <div className="mt-6 grid grid-cols-2 gap-3">
-        {[
-          { icon: Camera, label: 'Camera', sub: 'Many pages at once', go: () => nav(`/upload/camera?for=${forId}`), net: true },
-          { icon: ImageIcon, label: 'Gallery', sub: 'Photos on this phone', go: () => file.current?.click(), net: true },
-          { icon: FileText, label: 'PDF', sub: 'Reports from a lab', go: () => pdf.current?.click(), net: true },
-          { icon: Keyboard, label: 'Type it in', sub: 'No document needed', go: () => nav('/record/add'), net: false },
-        ].map((o) => (
-          <button
-            key={o.label}
-            type="button"
-            onClick={o.go}
-            disabled={o.net && !online}
-            className="btn card-link flex min-h-32 flex-col items-start justify-between gap-2 rounded-card border border-border-subtle bg-surface p-4 text-left disabled:bg-neutral-bg disabled:text-ink-500"
-          >
-            <span className={cx('grid size-12 place-items-center rounded-full', o.net && !online ? 'bg-border-subtle text-ink-500' : 'bg-primary-50 text-primary-600')}>
-              <o.icon className="size-6" strokeWidth={1.75} aria-hidden />
-            </span>
-            <span>
-              <span className="block text-h3 font-semibold">{t(o.label)}</span>
-              <span className="block text-small text-ink-700">{t(o.sub)}</span>
-            </span>
-          </button>
-        ))}
-      </div>
-      {!online && <NeedsInternet />}
-      <input ref={file} type="file" accept="image/*" multiple hidden onChange={(e) => e.target.files?.length && start([...e.target.files].map((f) => f.name))} />
-      <input ref={pdf} type="file" accept="application/pdf" hidden onChange={(e) => e.target.files?.length && start([...e.target.files].map((f) => f.name))} />
-      <Note tone="info" className="mt-6">
-        {t('AI reads each page. You check what it found before anything is saved.')}
-      </Note>
-    </Screen>
-  )
-}
+/** H19 Upload source + which profile: see UploadHub.tsx */
+export { UploadSource } from './UploadHub'
 
 /** H20 Camera capture: multi-page, edge frame, page counter, thumbnails (retake, reorder), blur warning */
 export function CameraCapture() {

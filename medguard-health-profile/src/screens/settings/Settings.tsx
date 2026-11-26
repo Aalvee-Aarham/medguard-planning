@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Bell, ChevronDown, ChevronUp, CircleHelp, Download, Fingerprint, Globe, Info, KeyRound, Laptop, LogOut, Mail, MessageSquare, Phone, PlayCircle, Shield, ShieldCheck, Smartphone, Trash2, Type, UserRound,
+  ChevronDown, ChevronUp, Download, Fingerprint, Globe, Laptop, Mail, Phone, PlayCircle, ShieldCheck, Smartphone, Trash2,
 } from 'lucide-react'
 import { useApp } from '../../state/store'
 import { useT } from '../../i18n'
@@ -12,73 +12,8 @@ import { Otp, StrengthMeter, passwordStrength } from '../onboarding/Auth'
 import { SELF } from '../../mock/seed'
 import { fmtDate } from '../../lib/format'
 
-/** S1 Settings home */
-export function SettingsHome() {
-  const { s } = useApp()
-  const t = useT()
-  const [out, setOut] = useState(false)
-  return (
-    <Screen>
-      <PageHeader title={t('Settings')} />
-      <SectionTitle>{t('Account')}</SectionTitle>
-      <List>
-        <ListRow icon={UserRound} title={t('Personal info')} sub={s.account.name} to="/settings/personal" />
-        <ListRow icon={Phone} title={t('Phone number')} sub={<span className="tabular">{s.account.phone}</span>} to="/settings/phone" />
-        <ListRow icon={Mail} title={t('Email')} sub={s.account.email} to="/settings/email" />
-        <ListRow icon={KeyRound} title={t('Password')} to="/settings/password" />
-        <ListRow icon={Smartphone} title={t('Sign-in methods')} to="/settings/sign-in" />
-        <ListRow icon={Shield} title={t('Security')} to="/settings/security" />
-      </List>
-      <SectionTitle>{t('App')}</SectionTitle>
-      <List>
-        <ListRow icon={Globe} title={t('Language')} sub={s.settings.lang === 'bn' ? 'বাংলা' : 'English'} to="/settings/language" />
-        <ListRow icon={Type} title={t('Text size')} sub={`${Math.round(s.settings.textSize * 100)}%`} to="/settings/text-size" />
-        <ListRow icon={Bell} title={t('Notifications')} to="/settings/notifications" />
-      </List>
-      <SectionTitle>{t('Your data')}</SectionTitle>
-      <List>
-        <ListRow icon={ShieldCheck} title={t('Privacy and consents')} to="/settings/privacy" />
-        <ListRow icon={Download} title={t('Download my data')} to="/settings/export" />
-        <ListRow icon={Trash2} iconTone="danger" title={t('Delete account')} danger to="/settings/delete" />
-      </List>
-      <SectionTitle>{t('Support')}</SectionTitle>
-      <List>
-        <ListRow icon={CircleHelp} title={t('Help and FAQ')} to="/help" />
-        <ListRow icon={MessageSquare} title={t('Contact support')} to="/help/contact" />
-        <ListRow icon={Info} title={t('About and legal')} to="/about" />
-      </List>
-      <Button full variant="secondary" icon={LogOut} className="mt-6" onClick={() => setOut(true)}>
-        {t('Log out')}
-      </Button>
-      <LogOutDialog open={out} onClose={() => setOut(false)} />
-    </Screen>
-  )
-}
-
-/** S17 Log out: confirm; warns if unsynced actions */
-function LogOutDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { s, mutate } = useApp()
-  const t = useT()
-  const nav = useNavigate()
-  const n = s.queue.length
-  return (
-    <ConfirmDialog
-      open={open}
-      onClose={onClose}
-      title={t('Log out of MedGuard?')}
-      body={n ? <Note tone="warning">{t('{n} actions have not synced yet. They will be lost if you log out now.', { n })}</Note> : t('Your record stays safe. Sign in again to see it.')}
-      confirmLabel={t('Log out')}
-      destructive={n > 0}
-      onConfirm={() => {
-        mutate((d) => {
-          d.session = { signedIn: false, locked: false }
-          d.queue = []
-        })
-        nav('/auth', { replace: true })
-      }}
-    />
-  )
-}
+/** S1 Settings home + S17 Log out: see SettingsHub.tsx */
+export { SettingsHome } from './SettingsHub'
 
 /** S2 Edit personal info */
 export function PersonalInfo() {
