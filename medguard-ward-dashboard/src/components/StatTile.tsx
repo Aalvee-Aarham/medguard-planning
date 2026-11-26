@@ -10,7 +10,7 @@ interface Props {
 
 export function StatTile({ label, value, icon: Icon, trend }: Props) {
   return (
-    <div className="rounded-card border border-border-subtle bg-surface p-4">
+    <div className="h-full rounded-card border border-border-subtle bg-surface p-4">
       <div className="flex items-center gap-2 text-sm text-ink-700">
         <Icon size={20} strokeWidth={1.75} aria-hidden className="text-primary-600" />
         {label}

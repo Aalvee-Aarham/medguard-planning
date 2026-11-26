@@ -4,6 +4,9 @@ import { ComponentGallery } from '../dev/ComponentGallery';
 import { ScreenIndex } from '../dev/ScreenIndex';
 import { ChooseWard } from '../screens/login/ChooseWard';
 import { Login } from '../screens/login/Login';
+import { BedBoard } from '../screens/beds/BedBoard';
+import { BedDetail } from '../screens/beds/BedDetail';
+import { Overview } from '../screens/overview/Overview';
 import { Placeholder } from '../screens/Placeholder';
 import { useStore, useT } from '../state/store';
 import { canSee } from './access';
@@ -40,6 +43,13 @@ function ManagerOnly({ children }: { children: React.ReactNode }) {
   return role === 'desk' ? <Navigate to="/queue" replace /> : <>{children}</>;
 }
 
+/** Screens that are built. Everything else shows its placeholder until its step. */
+const BUILT: Record<string, () => React.ReactElement> = {
+  D3: Overview,
+  D6: BedBoard,
+  D7: BedDetail,
+};
+
 export function AppRoutes() {
   const inShell = SCREENS.filter((s) => s.section !== 'access');
   return (
@@ -47,9 +57,12 @@ export function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/ward" element={<RequireSession><ManagerOnly><ChooseWard /></ManagerOnly></RequireSession>} />
       <Route element={<RequireSession><Shell /></RequireSession>}>
-        {inShell.map((s) => (
-          <Route key={s.id} path={s.path} element={<RoleGate section={s.section}><Placeholder screen={s} /></RoleGate>} />
-        ))}
+        {inShell.map((s) => {
+          const Screen = BUILT[s.id];
+          return (
+            <Route key={s.id} path={s.path} element={<RoleGate section={s.section}>{Screen ? <Screen /> : <Placeholder screen={s} />}</RoleGate>} />
+          );
+        })}
         <Route path="/dev/screens" element={<ScreenIndex />} />
         <Route path="/dev/components" element={<ComponentGallery />} />
         <Route path="*" element={<NotFound />} />

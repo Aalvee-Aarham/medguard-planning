@@ -2,9 +2,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
 import bn from '../i18n/bn.json';
 import en from '../i18n/en.json';
-import { USERS, WARDS, initialAlerts, initialBeds } from '../mock/data';
+import { CLEANER, DOCTOR, PATIENTS, USERS, WARDS, initialAlerts, initialBedEvents, initialBeds } from '../mock/data';
 import { LIVE_INTERVAL_MS, nextLiveEvent } from '../mock/liveEvents';
-import type { Alert, AuditEntry, Bed, Role, User, Ward } from '../mock/types';
+import type { Alert, AuditEntry, Bed, BedEvent, Role, User, Ward } from '../mock/types';
 
 export type Lang = 'en' | 'bn';
 
@@ -22,6 +22,7 @@ interface State {
   wardId: string;
   lang: Lang;
   beds: Bed[];
+  bedEvents: BedEvent[];
   alerts: Alert[];
   audit: AuditEntry[];
   toasts: Toast[];
@@ -45,6 +46,8 @@ type Action =
   | { type: 'ack'; id: string; by: string }
   | { type: 'add-alert'; alert: Alert }
   | { type: 'live-tick'; rand: number; at: string }
+  | { type: 'mark-ready'; bedId: number; at: string; by: string }
+  | { type: 'discharge'; bedId: number; at: string }
   | { type: 'audit'; entry: AuditEntry }
   | { type: 'toast'; toast: Toast }
   | { type: 'toast-done'; id: string }
@@ -77,10 +80,12 @@ function loadPrefs(): Pick<State, 'lang' | 'wardId'> {
 }
 
 function freshState(): State {
+  const beds = initialBeds();
   return {
     ...loadSession(),
     ...loadPrefs(),
-    beds: initialBeds(),
+    beds,
+    bedEvents: initialBedEvents(beds),
     alerts: initialAlerts(),
     audit: [],
     toasts: [],
@@ -91,6 +96,11 @@ function freshState(): State {
     quickLock: false,
   };
 }
+
+let eventSeq = 0;
+const bedEvent = (bedId: number, at: string, kind: BedEvent['kind'], by: string, patient?: string): BedEvent => ({
+  id: `be-live-${++eventSeq}`, bedId, at, kind, by, patient,
+});
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -122,7 +132,40 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         beds: ev.bed ? state.beds.map((b) => (b.id === ev.bed!.id ? { ...b, ...ev.bed } : b)) : state.beds,
+        bedEvents: ev.bed ? [...state.bedEvents, bedEvent(ev.bed.id, action.at, 'cleaningDone', CLEANER)] : state.bedEvents,
         alerts: ev.alert ? [ev.alert, ...state.alerts].slice(0, MAX_ALERTS) : state.alerts,
+      };
+    }
+    case 'mark-ready': {
+      const bed = state.beds.find((b) => b.id === action.bedId);
+      if (bed?.status !== 'cleaning') return state;
+      return {
+        ...state,
+        beds: state.beds.map((b) => (b.id === bed.id ? { ...b, status: 'ready', since: action.at } : b)),
+        bedEvents: [...state.bedEvents, bedEvent(bed.id, action.at, 'markedReady', action.by)],
+      };
+    }
+    case 'discharge': {
+      // Comes from the Ward app in the real product; the Dev panel fakes it here.
+      const bed = state.beds.find((b) => b.id === action.bedId);
+      if (bed?.status !== 'occupied') return state;
+      const patient = PATIENTS.find((p) => p.id === bed.patientId)?.name ?? '';
+      return {
+        ...state,
+        beds: state.beds.map((b) => (b.id === bed.id ? { ...b, status: 'cleaning', since: action.at, patientId: undefined } : b)),
+        bedEvents: [
+          ...state.bedEvents,
+          bedEvent(bed.id, action.at, 'discharged', DOCTOR, patient),
+          bedEvent(bed.id, action.at, 'cleaningStart', CLEANER),
+        ],
+        alerts: [
+          {
+            id: `discharge-${action.at}`, tier: 'normal', kind: 'bed', bedId: bed.id, at: action.at, acknowledged: false,
+            title: { key: 'alert.discharged.title', vars: { bed: bed.id } },
+            detail: { key: 'alert.discharged.detail', vars: { patient } },
+          } satisfies Alert,
+          ...state.alerts,
+        ].slice(0, MAX_ALERTS),
       };
     }
     case 'audit':

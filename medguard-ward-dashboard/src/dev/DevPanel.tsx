@@ -16,7 +16,6 @@ const ROLES: { role: Role; label: string }[] = [
 const LATER = [
   { label: 'Fall Bed 7, no acknowledgement', step: 8 },
   { label: 'Fall Bed 7, acknowledged', step: 8 },
-  { label: 'Discharge Bed 2', step: 4 },
   { label: 'New urgency request', step: 5 },
 ];
 
@@ -31,7 +30,8 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 
 export function DevPanel() {
   const [open, setOpen] = useState(false);
-  const { role, session, liveOn, serverDown, forceErrors, quickLock, audit, dispatch } = useStore();
+  const { role, session, liveOn, serverDown, forceErrors, quickLock, audit, beds, dispatch } = useStore();
+  const bed2Occupied = beds.find((b) => b.id === 2)?.status === 'occupied';
   const navigate = useNavigate();
 
   const switchRole = (r: Role) => {
@@ -102,6 +102,19 @@ export function DevPanel() {
       <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border-subtle pt-4">
         <button type="button" onClick={() => addAlert('high')} className="btn-secondary h-10 px-2 text-sm">+ High alert</button>
         <button type="button" onClick={() => addAlert('normal')} className="btn-secondary h-10 px-2 text-sm">+ Normal alert</button>
+      </div>
+
+      <div className="mt-4 space-y-2 border-t border-border-subtle pt-4">
+        <p className="text-sm font-semibold text-ink-700">Ward events (from the Ward app)</p>
+        <button
+          type="button"
+          disabled={!bed2Occupied}
+          onClick={() => dispatch({ type: 'discharge', bedId: 2, at: new Date().toISOString() })}
+          className="btn-secondary h-10 w-full text-sm"
+        >
+          Discharge Bed 2
+        </button>
+        {!bed2Occupied && <p className="text-xs text-ink-500">Bed 2 is empty. Use Reset to bring the patient back.</p>}
       </div>
 
       <div className="mt-4 space-y-1 border-t border-border-subtle pt-2">

@@ -5,11 +5,11 @@ import type { Alert, AlertKind, AlertTier } from '../mock/types';
 import { useStore, useT } from '../state/store';
 import { formatTime, since } from '../utils/format';
 
-const KIND_ICON: Record<AlertKind, LucideIcon> = {
+export const KIND_ICON: Record<AlertKind, LucideIcon> = {
   fall: Siren, overdue: Clock, visit: Eye, bed: BedDouble, request: Hand, test: Wrench,
 };
 
-const TIER_STYLE: Record<AlertTier, string> = {
+export const TIER_STYLE: Record<AlertTier, string> = {
   critical: 'border-danger-border bg-danger-bg text-danger-text',
   high: 'border-warning-border bg-warning-bg text-warning-text',
   normal: 'border-primary-100 bg-primary-50 text-primary-600',

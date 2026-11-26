@@ -29,6 +29,18 @@ export interface Bed {
   patientId?: string;
 }
 
+export type BedEventKind = 'admitted' | 'discharged' | 'cleaningStart' | 'cleaningDone' | 'markedReady' | 'oos';
+
+/** One line in a bed's history (D7). Cleaning events also form its cleaning log. */
+export interface BedEvent {
+  id: string;
+  bedId: number;
+  at: string;
+  kind: BedEventKind;
+  by: string;
+  patient?: string;
+}
+
 export interface Patient {
   id: string;
   name: string;

@@ -1,5 +1,5 @@
 // Mock cast, shared with the other 3 apps: Shanti Hospital, Dhaka · Neuro Ward B · 10 beds.
-import type { Alert, Bed, Patient, QueueEntry, Staff, User, Ward } from './types';
+import type { Alert, Bed, BedEvent, Patient, QueueEntry, Staff, User, Ward } from './types';
 
 export const minsAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString();
 
@@ -41,6 +41,55 @@ export const initialBeds = (): Bed[] => {
     patientId: status === 'occupied' ? byBed(id) : undefined,
   }));
 };
+
+export const CLEANER = 'Rafiq Mia';
+export const DESK = 'Salma Khatun';
+export const DOCTOR = 'Dr. Karim Hossain';
+
+/** Earlier patients, so empty beds have a believable history. */
+const PAST: Record<number, string> = {
+  1: 'Hasan Ali', 2: 'Shirin Akter', 3: 'Anwar Hossain', 4: 'Motaleb Mia', 5: 'Rubina Yasmin',
+  6: 'Jesmin Ara', 7: 'Delwar Hossain', 8: 'Nurjahan Begum', 9: 'Sohel Rana', 10: 'Kulsum Bibi',
+};
+
+/** History for every bed, oldest first, ending in the bed's current status. */
+export const initialBedEvents = (beds: Bed[]): BedEvent[] => {
+  const events: BedEvent[] = [];
+  const add = (bedId: number, at: string, kind: BedEvent['kind'], by: string, patient?: string) =>
+    events.push({ id: `be-${bedId}-${events.length}`, bedId, at, kind, by, patient });
+  const mins = (iso: string) => Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
+
+  for (const bed of beds) {
+    const m = mins(bed.since);
+    const name = PATIENTS.find((p) => p.id === bed.patientId)?.name;
+    if (bed.status === 'occupied') {
+      add(bed.id, minsAgo(m + 95), 'discharged', DOCTOR, PAST[bed.id]);
+      add(bed.id, minsAgo(m + 90), 'cleaningStart', CLEANER);
+      add(bed.id, minsAgo(m + 40), 'cleaningDone', CLEANER);
+      add(bed.id, bed.since, 'admitted', DESK, name);
+    } else if (bed.status === 'ready') {
+      add(bed.id, minsAgo(m + 50), 'discharged', DOCTOR, PAST[bed.id]);
+      add(bed.id, minsAgo(m + 45), 'cleaningStart', CLEANER);
+      add(bed.id, bed.since, 'cleaningDone', CLEANER);
+    } else if (bed.status === 'cleaning') {
+      add(bed.id, minsAgo(m + 5), 'discharged', DOCTOR, PAST[bed.id]);
+      add(bed.id, bed.since, 'cleaningStart', CLEANER);
+    } else if (bed.status === 'oos') {
+      add(bed.id, minsAgo(m + 60), 'discharged', DOCTOR, PAST[bed.id]);
+      add(bed.id, bed.since, 'oos', 'Habib Rahman');
+    }
+  }
+  return events;
+};
+
+/** Which beds each camera covers (PLAN.md section 8). */
+export const CAMERA_BEDS: Record<string, string> = { 'CAM-01': '1–5', 'CAM-02': '6–10' };
+
+/** Today's dose numbers for the Overview tile. "Before" is the pre-pilot baseline. */
+export const DOSES_TODAY = { onTimePct: 91, beforePct: 84 };
+
+/** Default shift rule until the Admin Console sets it (PLAN.md section 9). */
+export const SHIFT_RULE = { patientsPerNurse: 6, minRestHours: 11 };
 
 export const STAFF: Staff[] = [
   { id: 's-rina', name: 'Nurse Rina Akter', role: 'nurse', beds: [1, 2, 4, 5, 7, 8, 9], openTasks: 5, overdue: 1 },
