@@ -1,12 +1,12 @@
 // Right drawer, 360 px, opens on any page. Alerts are grouped by tier.
-import { Bell, CircleCheck, Clock, Eye, BedDouble, Hand, Siren, Wrench, X, type LucideIcon } from 'lucide-react';
+import { VideoOff, Bell, CircleCheck, Clock, Eye, BedDouble, Hand, Siren, Wrench, X, type LucideIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import type { Alert, AlertKind, AlertTier } from '../mock/types';
 import { useStore, useT } from '../state/store';
 import { formatTime, since } from '../utils/format';
 
 export const KIND_ICON: Record<AlertKind, LucideIcon> = {
-  fall: Siren, overdue: Clock, visit: Eye, bed: BedDouble, request: Hand, test: Wrench,
+  fall: Siren, overdue: Clock, visit: Eye, bed: BedDouble, request: Hand, camera: VideoOff, test: Wrench,
 };
 
 export const TIER_STYLE: Record<AlertTier, string> = {

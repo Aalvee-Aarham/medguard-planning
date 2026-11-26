@@ -1,5 +1,5 @@
 // Mock cast, shared with the other 3 apps: Shanti Hospital, Dhaka · Neuro Ward B · 10 beds.
-import type { Alert, Bed, BedEvent, Patient, QueueEntry, Staff, User, Ward } from './types';
+import type { Alert, Bed, BedEvent, Camera, CameraEvent, Patient, QueueEntry, Staff, User, Ward } from './types';
 
 export const minsAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString();
 
@@ -80,6 +80,30 @@ export const initialBedEvents = (beds: Bed[]): BedEvent[] => {
     }
   }
   return events;
+};
+
+/**
+ * Ward cameras from the plan (CAM-01 beds 1–5, CAM-02 beds 6–10), plus a corridor and a nurses' station
+ * camera with no beds, so the 2×2 and 3×3 camera wall layouts have something to show.
+ */
+export const initialCameras = (): Camera[] => [
+  { id: 'CAM-01', beds: [1, 2, 3, 4, 5], online: true },
+  { id: 'CAM-02', beds: [6, 7, 8, 9, 10], online: true },
+  { id: 'CAM-03', beds: [], online: true },
+  { id: 'CAM-04', beds: [], online: true },
+];
+
+/** Recent camera events: nurse visits to occupied beds and the earlier fall at Bed 7. */
+export const initialCameraEvents = (beds: Bed[]): CameraEvent[] => {
+  const events: CameraEvent[] = [];
+  for (const bed of beds.filter((b) => b.status === 'occupied')) {
+    const staff = STAFF.find((s) => s.beds.includes(bed.id))?.name ?? 'Nurse Mitu Das';
+    for (const m of [6 + bed.id * 5, 60 + bed.id * 7, 150 + bed.id * 4]) {
+      events.push({ id: `ce-${bed.id}-${m}`, cameraId: bed.cameraId, bedId: bed.id, kind: 'visit', at: minsAgo(m), staff });
+    }
+  }
+  events.push({ id: 'ce-fall-7', cameraId: 'CAM-02', bedId: 7, kind: 'fall', at: minsAgo(95), staff: 'Nurse Rina Akter', responseSecs: 48 });
+  return events.sort((a, b) => b.at.localeCompare(a.at));
 };
 
 /** Which beds each camera covers (PLAN.md section 8). */

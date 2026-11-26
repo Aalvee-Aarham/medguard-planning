@@ -6,6 +6,8 @@ import { ChooseWard } from '../screens/login/ChooseWard';
 import { Login } from '../screens/login/Login';
 import { BedBoard } from '../screens/beds/BedBoard';
 import { BedDetail } from '../screens/beds/BedDetail';
+import { CameraWall } from '../screens/camera/CameraWall';
+import { SingleCamera } from '../screens/camera/SingleCamera';
 import { Overview } from '../screens/overview/Overview';
 import { AddToQueue } from '../screens/queue/AddToQueue';
 import { AssignBed } from '../screens/queue/AssignBed';
@@ -50,6 +52,8 @@ function ManagerOnly({ children }: { children: React.ReactNode }) {
 /** Screens that are built. Everything else shows its placeholder until its step. */
 const BUILT: Record<string, () => React.ReactElement> = {
   D3: Overview,
+  D4: CameraWall,
+  D5: SingleCamera,
   D6: BedBoard,
   D7: BedDetail,
   D8: Queue,

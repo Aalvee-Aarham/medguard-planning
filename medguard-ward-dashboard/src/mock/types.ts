@@ -31,6 +31,26 @@ export interface Bed {
   reservedFor?: string;
 }
 
+export interface Camera {
+  id: string;
+  /** Beds this camera covers; empty for corridor and station cameras. */
+  beds: number[];
+  online: boolean;
+  offlineSince?: string;
+}
+
+/** Something the camera AI saw. Wording stays honest: a visit is "seen by camera", never "dose verified". */
+export interface CameraEvent {
+  id: string;
+  cameraId: string;
+  bedId: number;
+  kind: 'fall' | 'visit';
+  at: string;
+  staff?: string;
+  /** Seconds until a nurse reached the bed (falls). */
+  responseSecs?: number;
+}
+
 export type BedEventKind = 'admitted' | 'discharged' | 'cleaningStart' | 'cleaningDone' | 'markedReady' | 'oos' | 'reserved';
 
 /** One line in a bed's history (D7). Cleaning events also form its cleaning log. */
@@ -64,7 +84,7 @@ export interface Staff {
 }
 
 export type AlertTier = 'critical' | 'high' | 'normal';
-export type AlertKind = 'fall' | 'overdue' | 'visit' | 'bed' | 'request' | 'test';
+export type AlertKind = 'fall' | 'overdue' | 'visit' | 'bed' | 'request' | 'camera' | 'test';
 
 /** Text stored as a translation key + values, so it switches language. Drug and person names stay as written. */
 export interface Msg {

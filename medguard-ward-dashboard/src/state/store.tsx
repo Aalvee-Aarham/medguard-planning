@@ -2,10 +2,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
 import bn from '../i18n/bn.json';
 import en from '../i18n/en.json';
-import { CLEANER, DOCTOR, PATIENTS, QUEUE, USERS, WARDS, initialAlerts, initialBedEvents, initialBeds } from '../mock/data';
+import { CLEANER, DOCTOR, PATIENTS, QUEUE, USERS, WARDS, initialAlerts, initialBedEvents, initialBeds, initialCameraEvents, initialCameras } from '../mock/data';
 import { raise } from '../mock/queue';
 import { LIVE_INTERVAL_MS, nextLiveEvent } from '../mock/liveEvents';
-import type { Alert, AuditEntry, Bed, BedEvent, QueueEntry, Role, User, Ward } from '../mock/types';
+import type { Alert, AuditEntry, Bed, BedEvent, Camera, CameraEvent, QueueEntry, Role, User, Ward } from '../mock/types';
 
 export type Lang = 'en' | 'bn';
 
@@ -25,6 +25,8 @@ interface State {
   beds: Bed[];
   bedEvents: BedEvent[];
   queue: QueueEntry[];
+  cameras: Camera[];
+  cameraEvents: CameraEvent[];
   alerts: Alert[];
   audit: AuditEntry[];
   toasts: Toast[];
@@ -51,6 +53,7 @@ type Action =
   | { type: 'mark-ready'; bedId: number; at: string; by: string }
   | { type: 'discharge'; bedId: number; at: string }
   | { type: 'queue-add'; entry: QueueEntry }
+  | { type: 'camera-online'; id: string; online: boolean; at: string }
   | { type: 'queue-override'; id: string; points: number; reason: string; by: string }
   | { type: 'request-answer'; id: string; raise: boolean; answer: string; by: string }
   | { type: 'request-new'; id: string; reason: string; at: string }
@@ -94,6 +97,8 @@ function freshState(): State {
     beds,
     bedEvents: initialBedEvents(beds),
     queue: structuredClone(QUEUE),
+    cameras: initialCameras(),
+    cameraEvents: initialCameraEvents(beds),
     alerts: initialAlerts(),
     audit: [],
     toasts: [],
@@ -104,6 +109,12 @@ function freshState(): State {
     quickLock: false,
   };
 }
+
+/** A live "visit seen by camera" alert also becomes an event on that bed's camera. */
+const visitEvent = (state: State, alert: Alert): CameraEvent => {
+  const bed = state.beds.find((b) => b.id === alert.bedId)!;
+  return { id: `ce-live-${alert.at}`, cameraId: bed.cameraId, bedId: bed.id, kind: 'visit', at: alert.at, staff: String(alert.detail.vars?.nurse ?? '') };
+};
 
 let eventSeq = 0;
 const bedEvent = (bedId: number, at: string, kind: BedEvent['kind'], by: string, patient?: string): BedEvent => ({
@@ -142,6 +153,23 @@ function reducer(state: State, action: Action): State {
         beds: ev.bed ? state.beds.map((b) => (b.id === ev.bed!.id ? { ...b, ...ev.bed } : b)) : state.beds,
         bedEvents: ev.bed ? [...state.bedEvents, bedEvent(ev.bed.id, action.at, 'cleaningDone', CLEANER)] : state.bedEvents,
         alerts: ev.alert ? [ev.alert, ...state.alerts].slice(0, MAX_ALERTS) : state.alerts,
+        cameraEvents: ev.alert?.kind === 'visit' ? [visitEvent(state, ev.alert), ...state.cameraEvents].slice(0, 200) : state.cameraEvents,
+      };
+    }
+    case 'camera-online': {
+      const cam = state.cameras.find((c) => c.id === action.id);
+      if (!cam || cam.online === action.online) return state;
+      return {
+        ...state,
+        cameras: state.cameras.map((c) => (c.id === cam.id ? { ...c, online: action.online, offlineSince: action.online ? undefined : action.at } : c)),
+        alerts: action.online ? state.alerts : [
+          {
+            id: `cam-${action.at}`, tier: 'high', kind: 'camera', at: action.at, acknowledged: false,
+            title: { key: 'alert.camOffline.title', vars: { cam: cam.id } },
+            detail: { key: 'alert.camOffline.detail', vars: { beds: cam.beds.length ? `${cam.beds[0]}–${cam.beds[cam.beds.length - 1]}` : '—' } },
+          } satisfies Alert,
+          ...state.alerts,
+        ].slice(0, MAX_ALERTS),
       };
     }
     case 'mark-ready': {
