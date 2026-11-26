@@ -1,6 +1,8 @@
 // Loading, empty, error, no access and server banner: every screen uses these (PLAN.md section 10).
 import { Inbox, RefreshCw, ServerOff, ShieldX, AlertCircle, type LucideIcon } from 'lucide-react';
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useParallax } from '../utils/motion';
 import { useStore, useT } from '../state/store';
 
 export function Skeleton({ className = '' }: { className?: string }) {
@@ -29,8 +31,30 @@ function StateBox({ icon: Icon, tone, title, body, children }: { icon: LucideIco
   );
 }
 
+/** Simple blue line illustration for empty states: the icon inside thin rings that drift apart on scroll. */
+function EmptyIllustration() {
+  const box = useRef<HTMLDivElement>(null);
+  useParallax(box);
+  return (
+    <div ref={box} aria-hidden className="relative flex h-24 w-24 items-center justify-center">
+      <div data-speed="-0.3" className="absolute inset-0 rounded-full border border-primary-100" />
+      <div data-speed="0.2" className="absolute inset-3 rounded-full border border-dashed border-primary-100" />
+      <span className="flex h-12 w-12 items-center justify-center rounded-full border border-primary-600 bg-surface text-primary-600">
+        <Inbox size={24} strokeWidth={1.5} />
+      </span>
+    </div>
+  );
+}
+
 export function EmptyState({ title, body, action }: { title: string; body?: string; action?: React.ReactNode }) {
-  return <StateBox icon={Inbox} tone="bg-primary-50 text-primary-600" title={title} body={body}>{action}</StateBox>;
+  return (
+    <div className="flex flex-col items-center px-6 py-12 text-center">
+      <EmptyIllustration />
+      <h2 className="mt-4 text-lg font-semibold">{title}</h2>
+      {body && <p className="mt-1 max-w-md text-ink-700">{body}</p>}
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  );
 }
 
 export function ErrorState({ onRetry }: { onRetry: () => void }) {

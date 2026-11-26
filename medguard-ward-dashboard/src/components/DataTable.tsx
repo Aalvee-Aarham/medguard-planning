@@ -1,8 +1,9 @@
 // Table rules (PLAN.md section 4): 48 px rows, sticky header, no zebra, primary-50 hover,
 // sortable headers, filters above, pagination below.
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ChevronsUpDown, Search } from 'lucide-react';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { useT } from '../state/store';
+import { useEntrance } from '../utils/motion';
 import { EmptyState, ErrorState, TableSkeleton } from './States';
 
 export interface Column<T> {
@@ -36,6 +37,9 @@ export function DataTable<T>({ rows, columns, rowId, onRowClick, searchText, fil
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
   const [page, setPage] = useState(0);
+  const body = useRef<HTMLTableSectionElement>(null);
+  // Rows rise in once after loading (not on sorting, filtering or live updates).
+  useEntrance(body, 'tr', !loading && !error);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -117,7 +121,7 @@ export function DataTable<T>({ rows, columns, rowId, onRowClick, searchText, fil
                   })}
                 </tr>
               </thead>
-              <tbody>
+              <tbody ref={body}>
                 {pageRows.map((row) => (
                   <tr
                     key={rowId(row)}
